@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -18,7 +19,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.TextUnit
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -67,6 +71,16 @@ private fun recurringEditRoute(id: Long = EditRecurringViewModel.NEW_ID) =
 
 private fun editRoute(id: Long = EditTransactionViewModel.NEW_ID) = "edit?${EditTransactionViewModel.ARG_ID}=$id"
 
+/** Cỡ chữ nhãn tab: theo cỡ chữ hệ thống nhưng không quá 1.3× để 4 nhãn vẫn nằm trên một dòng. */
+@Composable
+private fun navLabelSize(): TextUnit {
+    val fontScale = LocalDensity.current.fontScale
+    val base = MaterialTheme.typography.labelMedium.fontSize
+    return if (fontScale > MAX_NAV_LABEL_SCALE) base * (MAX_NAV_LABEL_SCALE / fontScale) else base
+}
+
+private const val MAX_NAV_LABEL_SCALE = 1.3f
+
 @Composable
 fun FunManagerNavHost(addRequested: Boolean = false, onAddHandled: () -> Unit = {}) {
     val navController = rememberNavController()
@@ -95,7 +109,15 @@ fun FunManagerNavHost(addRequested: Boolean = false, onAddHandled: () -> Unit = 
                                 }
                             },
                             icon = { Icon(tab.icon, contentDescription = null) },
-                            label = { Text(stringResource(tab.label)) },
+                            label = {
+                                Text(
+                                    stringResource(tab.label),
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.Ellipsis,
+                                    fontSize = navLabelSize(),
+                                )
+                            },
                         )
                     }
                 }
