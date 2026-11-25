@@ -3,6 +3,8 @@ package com.funmanager
 import android.content.Context
 import com.funmanager.data.AppDatabase
 import com.funmanager.data.FinanceRepository
+import com.funmanager.data.LockStore
+import com.funmanager.lock.AppLockManager
 import com.funmanager.widget.SummaryWidgetProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,6 +21,8 @@ class AppContainer(context: Context) {
     private val appContext = context.applicationContext
 
     val repository = FinanceRepository(AppDatabase.build(appContext))
+
+    val appLock = AppLockManager(LockStore(appContext))
 
     /** Phạm vi coroutine sống cùng app, cho các việc nền ngắn. */
     val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)

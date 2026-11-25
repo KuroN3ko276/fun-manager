@@ -153,4 +153,30 @@
     <string name="delete_transfer_title">Xoá lần chuyển tiền này?</string>
     <string name="delete_wallet_title">Xoá ví \"%1$s\"?</string>
     <string name="delete_wallet_merge">Có %1$d giao dịch / định kỳ / chuyển tiền dùng ví này. Chúng và số dư của ví sẽ được gộp vào:</string>
+
+    <string name="security">Bảo mật</string>
+    <string name="lock_with_pin">Khoá app bằng mã PIN</string>
+    <string name="lock_with_pin_desc">Yêu cầu PIN mỗi khi mở app</string>
+    <string name="change_pin">Đổi mã PIN</string>
+    <string name="unlock_fingerprint">Mở khoá bằng vân tay</string>
+    <string name="lock_after">Tự khoá sau khi rời app</string>
+    <string name="lock_immediately">Ngay lập tức</string>
+    <string name="lock_1_minute">Sau 1 phút</string>
+    <string name="lock_5_minutes">Sau 5 phút</string>
+    <string name="forgot_pin_note">Nếu quên PIN, cách duy nhất là xoá dữ liệu app (Cài đặt → Ứng dụng → Quản lý chi tiêu → Lưu trữ → Xoá dữ liệu), toàn bộ giao dịch sẽ mất.</string>
+    <string name="enter_pin">Nhập mã PIN</string>
+    <string name="enter_current_pin">Nhập mã PIN hiện tại</string>
+    <string name="enter_new_pin">Đặt mã PIN mới</string>
+    <string name="confirm_new_pin">Nhập lại mã PIN mới</string>
+    <string name="pin_length_hint">4 đến 6 chữ số</string>
+    <string name="pin_too_short">PIN cần 4 đến 6 chữ số</string>
+    <string name="pin_mismatch">Hai lần nhập không khớp, hãy đặt lại</string>
+    <string name="pin_incorrect">Sai mã PIN</string>
+    <string name="pin_wrong">Sai mã PIN. Còn %1$d lần thử</string>
+    <string name="pin_locked_out">Nhập sai quá nhiều lần. Thử lại sau %1$d giây</string>
+    <string name="next">Tiếp</string>
+    <string name="use_fingerprint">Dùng vân tay</string>
+    <string name="use_pin">Dùng mã PIN</string>
+    <string name="backspace">Xoá</string>
+    <string name="biometric_title">Mở khoá</string>
 </resources>

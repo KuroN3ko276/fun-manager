@@ -17,5 +17,5 @@
 - [ ] **Xuất CSV / sao lưu & khôi phục** — lưu ra file để không mất dữ liệu khi đổi máy.
 - [ ] **Nhắc nhở hằng ngày** — notification nhắc ghi chi tiêu buổi tối.
 - [x] **Widget màn hình chính** — xem nhanh số đã chi / còn lại trong tháng.
-- [ ] **Khoá app** — vân tay hoặc PIN.
+- [x] **Khoá app** — vân tay hoặc PIN.
 - [x] **Mục tiêu tiết kiệm** — đặt mục tiêu và theo dõi tiến độ.

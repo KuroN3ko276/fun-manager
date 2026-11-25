@@ -46,6 +46,7 @@ import com.funmanager.ui.savings.GoalDetailRoute
 import com.funmanager.ui.savings.GoalDetailViewModel
 import com.funmanager.ui.savings.SavingsRoute
 import com.funmanager.ui.search.SearchRoute
+import com.funmanager.ui.settings.SecurityRoute
 import com.funmanager.ui.wallet.WalletsRoute
 
 private enum class Tab(val route: String, @StringRes val label: Int, val icon: ImageVector) {
@@ -61,6 +62,7 @@ private const val CATEGORIES_ROUTE = "categories"
 private const val RECURRING_ROUTE = "recurring"
 private const val SEARCH_ROUTE = "search"
 private const val WALLETS_ROUTE = "wallets"
+private const val SECURITY_ROUTE = "security"
 private const val RECURRING_EDIT_ROUTE =
     "recurring/edit?${EditRecurringViewModel.ARG_ID}={${EditRecurringViewModel.ARG_ID}}"
 
@@ -144,8 +146,10 @@ fun FunManagerNavHost(addRequested: Boolean = false, onAddHandled: () -> Unit = 
                     onOpenRecurring = { navController.navigate(RECURRING_ROUTE) },
                     onOpenSearch = { navController.navigate(SEARCH_ROUTE) },
                     onOpenWallets = { navController.navigate(WALLETS_ROUTE) },
+                    onOpenSecurity = { navController.navigate(SECURITY_ROUTE) },
                 )
             }
+            composable(SECURITY_ROUTE) { SecurityRoute(onBack = { navController.popBackStack() }) }
             composable(WALLETS_ROUTE) { WalletsRoute(onBack = { navController.popBackStack() }) }
             composable(SEARCH_ROUTE) {
                 SearchRoute(

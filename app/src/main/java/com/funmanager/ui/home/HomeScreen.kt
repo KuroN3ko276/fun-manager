@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Search
@@ -76,10 +77,11 @@ fun HomeRoute(
     onOpenRecurring: () -> Unit,
     onOpenSearch: () -> Unit,
     onOpenWallets: () -> Unit,
+    onOpenSecurity: () -> Unit,
     viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    HomeScreen(state, viewModel::onMonthChange, onAdd, onOpen, onOpenBudget, onOpenCategories, onOpenRecurring, onOpenSearch, onOpenWallets)
+    HomeScreen(state, viewModel::onMonthChange, onAdd, onOpen, onOpenBudget, onOpenCategories, onOpenRecurring, onOpenSearch, onOpenWallets, onOpenSecurity)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -94,6 +96,7 @@ fun HomeScreen(
     onOpenRecurring: () -> Unit,
     onOpenSearch: () -> Unit,
     onOpenWallets: () -> Unit,
+    onOpenSecurity: () -> Unit,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     Scaffold(
@@ -130,6 +133,14 @@ fun HomeScreen(
                             onClick = {
                                 menuOpen = false
                                 onOpenCategories()
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.security)) },
+                            leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null) },
+                            onClick = {
+                                menuOpen = false
+                                onOpenSecurity()
                             },
                         )
                     }
@@ -262,6 +273,7 @@ private fun HomeScreenPreview() {
             onOpenRecurring = {},
             onOpenSearch = {},
             onOpenWallets = {},
+            onOpenSecurity = {},
         )
     }
 }
