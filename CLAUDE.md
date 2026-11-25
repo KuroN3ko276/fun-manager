@@ -5,6 +5,7 @@ App Android quản lý thu chi theo tháng (Kotlin + Jetpack Compose + Room). D�
 ## Lệnh
 
 ```bash
+export JAVA_HOME=$HOME/Android/jdk-17   # JDK 17 (cần javac)
 export ANDROID_HOME=$HOME/Android/Sdk
 ./gradlew test            # unit test
 ./gradlew assembleDebug   # APK: app/build/outputs/apk/debug/app-debug.apk
