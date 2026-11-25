@@ -10,6 +10,7 @@ import com.funmanager.data.Category
 import com.funmanager.data.FinanceRepository
 import com.funmanager.data.RecurringRule
 import com.funmanager.data.TransactionType
+import com.funmanager.data.Wallet
 import com.funmanager.domain.groupDigits
 import com.funmanager.domain.occurrenceDate
 import com.funmanager.domain.resumeMonth
@@ -36,6 +37,8 @@ data class EditRecurringUiState(
     /** Tháng kế tiếp đã lưu của quy tắc (null khi tạo mới). */
     val savedNextMonth: YearMonth? = null,
     val allCategories: List<Category> = emptyList(),
+    val wallets: List<Wallet> = emptyList(),
+    val walletId: Long = Wallet.DEFAULT_ID,
     val showErrors: Boolean = false,
     val done: Boolean = false,
 ) {
@@ -63,14 +66,22 @@ class EditRecurringViewModel(
     init {
         viewModelScope.launch {
             val categories = repository.categories.first()
+            val wallets = repository.wallets.first()
             val existing = if (id == NEW_ID) null else repository.recurringRule(id)
             original = existing
             _state.update { s ->
                 if (existing == null) {
-                    s.copy(allCategories = categories, categoryId = categories.firstOrNull { it.type == s.type }?.id)
+                    s.copy(
+                        allCategories = categories,
+                        wallets = wallets,
+                        walletId = wallets.firstOrNull()?.id ?: Wallet.DEFAULT_ID,
+                        categoryId = categories.firstOrNull { it.type == s.type }?.id,
+                    )
                 } else {
                     s.copy(
                         allCategories = categories,
+                        wallets = wallets,
+                        walletId = existing.walletId,
                         type = existing.type,
                         amountText = groupDigits(existing.amount.toString()),
                         categoryId = existing.categoryId,
@@ -91,6 +102,8 @@ class EditRecurringViewModel(
     fun onAmountChange(text: String) = _state.update { it.copy(amountText = formatAmountInput(text)) }
 
     fun onCategoryChange(id: Long) = _state.update { it.copy(categoryId = id) }
+
+    fun onWalletChange(id: Long) = _state.update { it.copy(walletId = id) }
 
     fun onDayChange(day: Int) = _state.update { it.copy(dayOfMonth = day.coerceIn(1, 31)) }
 
@@ -116,6 +129,7 @@ class EditRecurringViewModel(
                     categoryId = categoryId,
                     dayOfMonth = s.dayOfMonth,
                     note = s.note.trim(),
+                    walletId = s.walletId,
                     // Repository tính lại tháng kế tiếp, tránh tạo trùng hoặc tạo bù.
                     nextMonth = original?.nextMonth ?: YearMonth.from(today),
                     active = s.active,

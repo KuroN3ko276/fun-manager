@@ -89,6 +89,7 @@ class FinanceRepository(private val db: AppDatabase) {
                             date = date,
                             note = rule.note,
                             recurringId = rule.id,
+                            walletId = rule.walletId,
                         )
                     },
                 )
@@ -127,4 +128,33 @@ class FinanceRepository(private val db: AppDatabase) {
             totalBudget = db.budgetDao().getForMonth(month).firstOrNull { it.categoryId == Budget.TOTAL_CATEGORY_ID }?.limit,
         )
     }
+
+    val wallets: Flow<List<Wallet>> = db.walletDao().observeAll()
+
+    val walletNets: Flow<List<WalletNet>> = db.walletDao().observeNets()
+
+    val transfers: Flow<List<Transfer>> = db.walletDao().observeTransfers()
+
+    suspend fun saveWallet(wallet: Wallet) = db.walletDao().upsert(wallet)
+
+    suspend fun walletUsage(id: Long): Int = db.walletDao().usage(id)
+
+    /**
+     * Xoá ví bằng cách gộp vào [replacementId]: giao dịch, định kỳ, chuyển tiền và số dư ban đầu
+     * chuyển sang ví thay thế nên tổng tài sản không đổi.
+     */
+    suspend fun deleteWallet(wallet: Wallet, replacementId: Long) = db.withTransaction {
+        val dao = db.walletDao()
+        dao.moveTransactions(wallet.id, replacementId)
+        dao.moveRecurring(wallet.id, replacementId)
+        dao.moveTransfersFrom(wallet.id, replacementId)
+        dao.moveTransfersTo(wallet.id, replacementId)
+        dao.deleteSelfTransfers()
+        dao.addToInitialBalance(replacementId, wallet.initialBalance)
+        dao.delete(wallet.id)
+    }
+
+    suspend fun addTransfer(transfer: Transfer) = db.walletDao().insertTransfer(transfer)
+
+    suspend fun deleteTransfer(id: Long) = db.walletDao().deleteTransfer(id)
 }

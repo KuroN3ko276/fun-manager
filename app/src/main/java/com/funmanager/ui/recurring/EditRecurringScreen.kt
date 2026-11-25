@@ -46,6 +46,7 @@ import com.funmanager.ui.components.AmountField
 import com.funmanager.ui.components.CategoryPicker
 import com.funmanager.ui.components.DayOfMonthPicker
 import com.funmanager.ui.components.TypeSegmented
+import com.funmanager.ui.components.WalletPicker
 import com.funmanager.ui.components.shortDate
 import com.funmanager.ui.theme.FunManagerTheme
 import java.time.LocalDate
@@ -63,6 +64,7 @@ fun EditRecurringRoute(
         onTypeChange = viewModel::onTypeChange,
         onAmountChange = viewModel::onAmountChange,
         onCategoryChange = viewModel::onCategoryChange,
+        onWalletChange = viewModel::onWalletChange,
         onDayChange = viewModel::onDayChange,
         onNoteChange = viewModel::onNoteChange,
         onActiveChange = viewModel::onActiveChange,
@@ -79,6 +81,7 @@ fun EditRecurringScreen(
     onTypeChange: (TransactionType) -> Unit,
     onAmountChange: (String) -> Unit,
     onCategoryChange: (Long) -> Unit,
+    onWalletChange: (Long) -> Unit,
     onDayChange: (Int) -> Unit,
     onNoteChange: (String) -> Unit,
     onActiveChange: (Boolean) -> Unit,
@@ -119,6 +122,9 @@ fun EditRecurringScreen(
             TypeSegmented(state.type, onTypeChange)
             AmountField(state.amountText, onAmountChange, state.amountError)
             CategoryPicker(state.categories, state.categoryId, onCategoryChange, state.categoryError)
+            if (state.wallets.size > 1) {
+                WalletPicker(state.wallets, state.walletId, onWalletChange, stringResource(R.string.wallet))
+            }
 
             Text(
                 stringResource(R.string.day_of_month_selected, state.dayOfMonth),
@@ -190,6 +196,7 @@ private fun EditRecurringPreview() {
             onTypeChange = {},
             onAmountChange = {},
             onCategoryChange = {},
+            onWalletChange = {},
             onDayChange = {},
             onNoteChange = {},
             onActiveChange = {},

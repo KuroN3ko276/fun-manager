@@ -6,11 +6,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.ChildCare
 import androidx.compose.material.icons.filled.Checkroom
+import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Flight
@@ -18,6 +21,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.LocalGasStation
 import androidx.compose.material.icons.filled.LocalHospital
+import androidx.compose.material.icons.filled.Money
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Pets
@@ -74,7 +78,17 @@ val CATEGORY_ICONS: List<Pair<String, ImageVector>> = listOf(
     "other" to Icons.Filled.Category,
 )
 
-private val ICON_MAP = CATEGORY_ICONS.toMap()
+/** Biểu tượng cho ví / tài khoản. */
+val WALLET_ICONS: List<Pair<String, ImageVector>> = listOf(
+    "cash" to Icons.Filled.Money,
+    "wallet" to Icons.Filled.AccountBalanceWallet,
+    "bank" to Icons.Filled.AccountBalance,
+    "card" to Icons.Filled.CreditCard,
+    "ewallet" to Icons.Filled.PhoneAndroid,
+    "savings" to Icons.Filled.Savings,
+)
+
+private val ICON_MAP = (CATEGORY_ICONS + WALLET_ICONS).toMap()
 
 /** Bảng màu cho danh mục (ARGB). */
 val CATEGORY_COLORS: List<Long> = listOf(

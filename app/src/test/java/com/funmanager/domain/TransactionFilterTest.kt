@@ -16,7 +16,7 @@ class TransactionFilterTest {
     private val today = LocalDate.of(2026, 11, 25)
 
     private val pho = Transaction(1, 45_000, EXPENSE, 1, LocalDate.of(2026, 11, 20), "Phở bò")
-    private val net = Transaction(2, 250_000, EXPENSE, 2, LocalDate.of(2026, 10, 11), "Tiền mạng Viettel")
+    private val net = Transaction(2, 250_000, EXPENSE, 2, LocalDate.of(2026, 10, 11), "Tiền mạng Viettel", walletId = 2)
     private val luong = Transaction(3, 15_000_000, INCOME, 3, LocalDate.of(2026, 11, 10), "")
     private val old = Transaction(4, 120_000, EXPENSE, 1, LocalDate.of(2025, 12, 31), "Đồ ăn tất niên")
     private val all = listOf(pho, net, luong, old)
@@ -60,6 +60,12 @@ class TransactionFilterTest {
                 ),
             ),
         )
+    }
+
+    @Test
+    fun filtersByWallet() {
+        assertEquals(listOf(2L), ids(TransactionFilter(walletIds = setOf(2))))
+        assertEquals(listOf(1L, 3L, 4L), ids(TransactionFilter(walletIds = setOf(1))))
     }
 
     @Test

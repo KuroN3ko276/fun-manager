@@ -63,8 +63,10 @@ import com.funmanager.data.TransactionType
 import com.funmanager.domain.DatePreset
 import com.funmanager.ui.components.CategoryIcon
 import com.funmanager.ui.components.DayHeader
+import com.funmanager.ui.components.IconBubble
 import com.funmanager.ui.components.MoneyText
 import com.funmanager.ui.components.TransactionRow
+import com.funmanager.ui.components.iconFor
 import com.funmanager.ui.components.shortDate
 import com.funmanager.ui.theme.ExpenseColor
 import com.funmanager.ui.theme.FunManagerTheme
@@ -89,6 +91,7 @@ fun SearchRoute(
             onToggleFilters = viewModel::toggleFilters,
             onTypeChange = viewModel::onTypeChange,
             onToggleCategory = viewModel::onToggleCategory,
+            onToggleWallet = viewModel::onToggleWallet,
             onDatePreset = viewModel::onDatePreset,
             onCustomRange = viewModel::onCustomRange,
             onMinChange = viewModel::onMinChange,
@@ -105,6 +108,7 @@ class SearchActions(
     val onToggleFilters: () -> Unit = {},
     val onTypeChange: (TransactionType?) -> Unit = {},
     val onToggleCategory: (Long) -> Unit = {},
+    val onToggleWallet: (Long) -> Unit = {},
     val onDatePreset: (DatePreset) -> Unit = {},
     val onCustomRange: (LocalDate?, LocalDate?) -> Unit = { _, _ -> },
     val onMinChange: (String) -> Unit = {},
@@ -172,7 +176,11 @@ fun SearchScreen(state: SearchUiState, actions: SearchActions, autoFocus: Boolea
             state.results.forEach { (date, items) ->
                 item(key = "d" + date.toEpochDay()) { DayHeader(date, items) }
                 items(items, key = { it.transaction.id }) { item ->
-                    TransactionRow(item, onClick = { actions.onOpen(item.transaction.id) })
+                    TransactionRow(
+                        item,
+                        onClick = { actions.onOpen(item.transaction.id) },
+                        extraInfo = state.walletNames[item.transaction.walletId],
+                    )
                 }
             }
         }
@@ -287,6 +295,21 @@ private fun FilterPanel(state: SearchUiState, actions: SearchActions) {
                             leadingIcon = { CategoryIcon(category, size = 20.dp) },
                         )
                     }
+            }
+
+            if (state.wallets.size > 1) {
+                HorizontalDivider()
+                Text(stringResource(R.string.wallet), style = MaterialTheme.typography.titleSmall)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    state.wallets.forEach { wallet ->
+                        FilterChip(
+                            selected = wallet.id in filter.walletIds,
+                            onClick = { actions.onToggleWallet(wallet.id) },
+                            label = { Text(wallet.name) },
+                            leadingIcon = { IconBubble(iconFor(wallet.icon), Color(wallet.color), size = 20.dp) },
+                        )
+                    }
+                }
             }
 
             if (filter.activeCount > 0) {

@@ -48,6 +48,7 @@ import com.funmanager.data.TransactionType
 import com.funmanager.ui.components.AmountField
 import com.funmanager.ui.components.CategoryPicker
 import com.funmanager.ui.components.TypeSegmented
+import com.funmanager.ui.components.WalletPicker
 import com.funmanager.ui.components.shortDate
 import com.funmanager.ui.theme.FunManagerTheme
 import java.time.Instant
@@ -67,6 +68,7 @@ fun EditTransactionRoute(
         onTypeChange = viewModel::onTypeChange,
         onAmountChange = viewModel::onAmountChange,
         onCategoryChange = viewModel::onCategoryChange,
+        onWalletChange = viewModel::onWalletChange,
         onDateChange = viewModel::onDateChange,
         onNoteChange = viewModel::onNoteChange,
         onSave = viewModel::save,
@@ -82,6 +84,7 @@ fun EditTransactionScreen(
     onTypeChange: (TransactionType) -> Unit,
     onAmountChange: (String) -> Unit,
     onCategoryChange: (Long) -> Unit,
+    onWalletChange: (Long) -> Unit,
     onDateChange: (LocalDate) -> Unit,
     onNoteChange: (String) -> Unit,
     onSave: () -> Unit,
@@ -125,6 +128,9 @@ fun EditTransactionScreen(
             TypeSegmented(state.type, onTypeChange)
             AmountField(state.amountText, onAmountChange, state.amountError)
             CategoryPicker(state.categories, state.categoryId, onCategoryChange, state.categoryError)
+            if (state.wallets.size > 1) {
+                WalletPicker(state.wallets, state.walletId, onWalletChange, stringResource(R.string.wallet))
+            }
 
             OutlinedButton(onClick = { showDatePicker = true }, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Filled.CalendarMonth, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -195,6 +201,7 @@ private fun EditTransactionScreenPreview() {
             onTypeChange = {},
             onAmountChange = {},
             onCategoryChange = {},
+            onWalletChange = {},
             onDateChange = {},
             onNoteChange = {},
             onSave = {},

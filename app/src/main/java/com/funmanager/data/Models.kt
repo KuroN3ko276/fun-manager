@@ -44,6 +44,7 @@ data class Transaction(
     val note: String = "",
     /** Id của [RecurringRule] đã tạo ra giao dịch này, null nếu nhập tay. */
     @ColumnInfo(defaultValue = "NULL") val recurringId: Long? = null,
+    @ColumnInfo(defaultValue = Wallet.DEFAULT_ID_SQL, index = true) val walletId: Long = Wallet.DEFAULT_ID,
 )
 
 @Entity(tableName = "recurring_rules", indices = [Index("categoryId")])
@@ -58,6 +59,7 @@ data class RecurringRule(
     /** Tháng kế tiếp cần tạo giao dịch. */
     val nextMonth: YearMonth,
     val active: Boolean = true,
+    @ColumnInfo(defaultValue = Wallet.DEFAULT_ID_SQL) val walletId: Long = Wallet.DEFAULT_ID,
 )
 
 @Entity(tableName = "budgets", primaryKeys = ["month", "categoryId"])
@@ -110,3 +112,33 @@ data class GoalWithSaved(
     @Embedded val goal: SavingsGoal,
     val saved: Long,
 )
+
+@Entity(tableName = "wallets")
+data class Wallet(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val name: String,
+    val icon: String,
+    val color: Long,
+    /** Số dư khi bắt đầu dùng app (có thể âm, ví dụ thẻ tín dụng). */
+    val initialBalance: Long = 0,
+) {
+    companion object {
+        /** Ví "Tiền mặt" tạo sẵn; giao dịch cũ được gán vào ví này khi nâng cấp. */
+        const val DEFAULT_ID = 1L
+        const val DEFAULT_ID_SQL = "1"
+    }
+}
+
+/** Chuyển tiền giữa hai ví: không tính là thu hay chi. */
+@Entity(tableName = "transfers", indices = [Index("fromWalletId"), Index("toWalletId")])
+data class Transfer(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val fromWalletId: Long,
+    val toWalletId: Long,
+    val amount: Long,
+    val date: LocalDate,
+    val note: String = "",
+)
+
+/** Tổng thu − chi của một ví. */
+data class WalletNet(val walletId: Long, val net: Long)

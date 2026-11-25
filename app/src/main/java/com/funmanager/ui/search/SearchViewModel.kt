@@ -7,12 +7,14 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.funmanager.data.Category
 import com.funmanager.data.FinanceRepository
 import com.funmanager.data.TransactionType
+import com.funmanager.data.Wallet
 import com.funmanager.domain.DatePreset
 import com.funmanager.domain.TransactionFilter
 import com.funmanager.domain.filterTransactions
 import com.funmanager.domain.parseVnd
 import com.funmanager.ui.components.TransactionItem
 import com.funmanager.ui.components.formatAmountInput
+import com.funmanager.ui.components.walletNames
 import com.funmanager.ui.container
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -32,6 +34,8 @@ data class FilterInput(
 data class SearchUiState(
     val input: FilterInput = FilterInput(),
     val categories: List<Category> = emptyList(),
+    val wallets: List<Wallet> = emptyList(),
+    val walletNames: Map<Long, String> = emptyMap(),
     val results: Map<LocalDate, List<TransactionItem>> = emptyMap(),
     val count: Int = 0,
     val totalIncome: Long = 0,
@@ -49,12 +53,15 @@ class SearchViewModel(repository: FinanceRepository) : ViewModel() {
         showFilters,
         repository.allTransactions,
         repository.categories,
-    ) { input, show, transactions, categories ->
+        repository.wallets,
+    ) { input, show, transactions, categories, wallets ->
         val byId = categories.associateBy { it.id }
         val matched = filterTransactions(transactions, byId, input.filter, LocalDate.now())
         SearchUiState(
             input = input,
             categories = categories,
+            wallets = wallets,
+            walletNames = walletNames(wallets),
             results = matched
                 .mapNotNull { t -> byId[t.categoryId]?.let { TransactionItem(t, it) } }
                 .groupBy { it.transaction.date },
@@ -80,6 +87,10 @@ class SearchViewModel(repository: FinanceRepository) : ViewModel() {
 
     fun onToggleCategory(id: Long) = updateFilter { f ->
         f.copy(categoryIds = if (id in f.categoryIds) f.categoryIds - id else f.categoryIds + id)
+    }
+
+    fun onToggleWallet(id: Long) = updateFilter { f ->
+        f.copy(walletIds = if (id in f.walletIds) f.walletIds - id else f.walletIds + id)
     }
 
     fun onDatePreset(preset: DatePreset) = updateFilter { it.copy(datePreset = preset) }

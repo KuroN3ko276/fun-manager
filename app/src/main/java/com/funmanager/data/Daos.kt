@@ -129,3 +129,62 @@ interface SavingsDao {
     @Query("DELETE FROM savings_deposits WHERE id = :id")
     suspend fun deleteDeposit(id: Long)
 }
+
+@Dao
+interface WalletDao {
+    @Query("SELECT * FROM wallets ORDER BY id")
+    fun observeAll(): Flow<List<Wallet>>
+
+    @Query("SELECT * FROM wallets ORDER BY id")
+    suspend fun getAll(): List<Wallet>
+
+    @Upsert
+    suspend fun upsert(wallet: Wallet)
+
+    @Query("DELETE FROM wallets WHERE id = :id")
+    suspend fun delete(id: Long)
+
+    @Query(
+        """
+        SELECT walletId, SUM(CASE WHEN type = 'INCOME' THEN amount ELSE -amount END) AS net
+        FROM transactions GROUP BY walletId
+        """,
+    )
+    fun observeNets(): Flow<List<WalletNet>>
+
+    @Query("SELECT * FROM transfers ORDER BY date DESC, id DESC")
+    fun observeTransfers(): Flow<List<Transfer>>
+
+    @Insert
+    suspend fun insertTransfer(transfer: Transfer)
+
+    @Query("DELETE FROM transfers WHERE id = :id")
+    suspend fun deleteTransfer(id: Long)
+
+    @Query(
+        """
+        SELECT (SELECT COUNT(*) FROM transactions WHERE walletId = :id)
+             + (SELECT COUNT(*) FROM recurring_rules WHERE walletId = :id)
+             + (SELECT COUNT(*) FROM transfers WHERE fromWalletId = :id OR toWalletId = :id)
+        """,
+    )
+    suspend fun usage(id: Long): Int
+
+    @Query("UPDATE transactions SET walletId = :to WHERE walletId = :from")
+    suspend fun moveTransactions(from: Long, to: Long)
+
+    @Query("UPDATE recurring_rules SET walletId = :to WHERE walletId = :from")
+    suspend fun moveRecurring(from: Long, to: Long)
+
+    @Query("UPDATE transfers SET fromWalletId = :to WHERE fromWalletId = :from")
+    suspend fun moveTransfersFrom(from: Long, to: Long)
+
+    @Query("UPDATE transfers SET toWalletId = :to WHERE toWalletId = :from")
+    suspend fun moveTransfersTo(from: Long, to: Long)
+
+    @Query("DELETE FROM transfers WHERE fromWalletId = toWalletId")
+    suspend fun deleteSelfTransfers()
+
+    @Query("UPDATE wallets SET initialBalance = initialBalance + :amount WHERE id = :id")
+    suspend fun addToInitialBalance(id: Long, amount: Long)
+}

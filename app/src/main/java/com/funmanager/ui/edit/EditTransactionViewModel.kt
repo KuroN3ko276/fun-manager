@@ -10,6 +10,7 @@ import com.funmanager.data.Category
 import com.funmanager.data.FinanceRepository
 import com.funmanager.data.Transaction
 import com.funmanager.data.TransactionType
+import com.funmanager.data.Wallet
 import com.funmanager.domain.groupDigits
 import com.funmanager.domain.parseVnd
 import com.funmanager.ui.components.formatAmountInput
@@ -32,6 +33,8 @@ data class EditUiState(
     val date: LocalDate = LocalDate.now(),
     val note: String = "",
     val allCategories: List<Category> = emptyList(),
+    val wallets: List<Wallet> = emptyList(),
+    val walletId: Long = Wallet.DEFAULT_ID,
     val showErrors: Boolean = false,
     val done: Boolean = false,
 ) {
@@ -58,17 +61,22 @@ class EditTransactionViewModel(
     init {
         viewModelScope.launch {
             val categories = repository.categories.first()
+            val wallets = repository.wallets.first()
             val existing = if (id == NEW_ID) null else repository.transaction(id)
             original = existing
             _state.update { s ->
                 if (existing == null) {
                     s.copy(
                         allCategories = categories,
+                        wallets = wallets,
+                        walletId = wallets.firstOrNull()?.id ?: Wallet.DEFAULT_ID,
                         categoryId = categories.firstOrNull { it.type == s.type }?.id,
                     )
                 } else {
                     s.copy(
                         allCategories = categories,
+                        wallets = wallets,
+                        walletId = existing.walletId,
                         type = existing.type,
                         amountText = groupDigits(existing.amount.toString()),
                         categoryId = existing.categoryId,
@@ -92,6 +100,8 @@ class EditTransactionViewModel(
 
     fun onCategoryChange(id: Long) = _state.update { it.copy(categoryId = id) }
 
+    fun onWalletChange(id: Long) = _state.update { it.copy(walletId = id) }
+
     fun onDateChange(date: LocalDate) = _state.update { it.copy(date = date) }
 
     fun onNoteChange(note: String) = _state.update { it.copy(note = note) }
@@ -113,6 +123,7 @@ class EditTransactionViewModel(
                     categoryId = categoryId,
                     date = s.date,
                     note = s.note.trim(),
+                    walletId = s.walletId,
                 ),
             )
             _state.update { it.copy(done = true) }

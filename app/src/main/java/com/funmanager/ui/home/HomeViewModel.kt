@@ -8,11 +8,13 @@ import com.funmanager.data.Budget
 import com.funmanager.data.Category
 import com.funmanager.data.FinanceRepository
 import com.funmanager.data.Transaction
+import com.funmanager.data.Wallet
 import com.funmanager.domain.BudgetOverview
 import com.funmanager.domain.MonthlySummary
 import com.funmanager.domain.budgetOverview
 import com.funmanager.domain.summarize
 import com.funmanager.ui.components.TransactionItem
+import com.funmanager.ui.components.walletNames
 import com.funmanager.ui.container
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,6 +31,8 @@ data class HomeUiState(
     val summary: MonthlySummary = MonthlySummary.EMPTY,
     val days: Map<LocalDate, List<TransactionItem>> = emptyMap(),
     val budget: BudgetOverview = BudgetOverview.EMPTY,
+    /** Tên ví theo id; rỗng khi chỉ có một ví (không cần hiển thị). */
+    val walletNames: Map<Long, String> = emptyMap(),
     val loading: Boolean = true,
 )
 
@@ -43,7 +47,8 @@ class HomeViewModel(
             repository.transactionsIn(month),
             repository.budgetsIn(month),
             repository.categories,
-        ) { transactions, budgets, categories -> buildState(month, transactions, budgets, categories) }
+            repository.wallets,
+        ) { transactions, budgets, categories, wallets -> buildState(month, transactions, budgets, categories, wallets) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 
     private fun buildState(
@@ -51,6 +56,7 @@ class HomeViewModel(
         transactions: List<Transaction>,
         budgets: List<Budget>,
         categories: List<Category>,
+        wallets: List<Wallet>,
     ): HomeUiState {
         val byId = categories.associateBy { it.id }
         val summary = summarize(transactions, categories)
@@ -61,6 +67,7 @@ class HomeViewModel(
             days = transactions
                 .mapNotNull { t -> byId[t.categoryId]?.let { TransactionItem(t, it) } }
                 .groupBy { it.transaction.date },
+            walletNames = walletNames(wallets),
             loading = false,
         )
     }

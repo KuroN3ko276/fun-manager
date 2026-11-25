@@ -135,4 +135,22 @@
     <string name="amount_from">Từ</string>
     <string name="amount_to">Đến</string>
     <string name="clear_filters">Xoá bộ lọc</string>
+
+    <string name="wallets">Ví &amp; tài khoản</string>
+    <string name="wallet">Ví</string>
+    <string name="total_assets">Tổng tài sản</string>
+    <string name="add_wallet">Thêm ví</string>
+    <string name="edit_wallet">Sửa ví</string>
+    <string name="wallet_name">Tên ví</string>
+    <string name="wallet_name_hint">VD: Vietcombank, MoMo</string>
+    <string name="initial_balance">Số dư ban đầu</string>
+    <string name="initial_is_debt">Đây là khoản nợ (thẻ tín dụng)</string>
+    <string name="transfer">Chuyển tiền</string>
+    <string name="transfer_from">Từ ví</string>
+    <string name="transfer_to">Đến ví</string>
+    <string name="transfer_same_wallet">Chọn hai ví khác nhau</string>
+    <string name="transfer_history">Lịch sử chuyển tiền</string>
+    <string name="delete_transfer_title">Xoá lần chuyển tiền này?</string>
+    <string name="delete_wallet_title">Xoá ví \"%1$s\"?</string>
+    <string name="delete_wallet_merge">Có %1$d giao dịch / định kỳ / chuyển tiền dùng ví này. Chúng và số dư của ví sẽ được gộp vào:</string>
 </resources>

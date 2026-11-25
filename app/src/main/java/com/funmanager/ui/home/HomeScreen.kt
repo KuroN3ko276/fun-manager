@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.MoreVert
@@ -74,10 +75,11 @@ fun HomeRoute(
     onOpenCategories: () -> Unit,
     onOpenRecurring: () -> Unit,
     onOpenSearch: () -> Unit,
+    onOpenWallets: () -> Unit,
     viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    HomeScreen(state, viewModel::onMonthChange, onAdd, onOpen, onOpenBudget, onOpenCategories, onOpenRecurring, onOpenSearch)
+    HomeScreen(state, viewModel::onMonthChange, onAdd, onOpen, onOpenBudget, onOpenCategories, onOpenRecurring, onOpenSearch, onOpenWallets)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -91,6 +93,7 @@ fun HomeScreen(
     onOpenCategories: () -> Unit,
     onOpenRecurring: () -> Unit,
     onOpenSearch: () -> Unit,
+    onOpenWallets: () -> Unit,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     Scaffold(
@@ -105,6 +108,14 @@ fun HomeScreen(
                         Icon(Icons.Filled.MoreVert, stringResource(R.string.more_options))
                     }
                     DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.wallets)) },
+                            leadingIcon = { Icon(Icons.Filled.AccountBalanceWallet, contentDescription = null) },
+                            onClick = {
+                                menuOpen = false
+                                onOpenWallets()
+                            },
+                        )
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.menu_recurring)) },
                             leadingIcon = { Icon(Icons.Filled.Repeat, contentDescription = null) },
@@ -156,7 +167,11 @@ fun HomeScreen(
             state.days.forEach { (date, items) ->
                 item(key = date.toEpochDay()) { DayHeader(date, items) }
                 items(items, key = { it.transaction.id }) { item ->
-                    TransactionRow(item, onClick = { onOpen(item.transaction.id) })
+                    TransactionRow(
+                        item,
+                        onClick = { onOpen(item.transaction.id) },
+                        extraInfo = state.walletNames[item.transaction.walletId],
+                    )
                 }
             }
         }
@@ -246,6 +261,7 @@ private fun HomeScreenPreview() {
             onOpenCategories = {},
             onOpenRecurring = {},
             onOpenSearch = {},
+            onOpenWallets = {},
         )
     }
 }

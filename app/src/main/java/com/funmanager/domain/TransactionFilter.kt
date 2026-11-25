@@ -15,6 +15,8 @@ data class TransactionFilter(
     val type: TransactionType? = null,
     /** Rỗng = mọi danh mục. */
     val categoryIds: Set<Long> = emptySet(),
+    /** Rỗng = mọi ví. */
+    val walletIds: Set<Long> = emptySet(),
     val datePreset: DatePreset = DatePreset.ALL,
     /** Chỉ dùng khi [datePreset] = CUSTOM; null = không giới hạn đầu/cuối. */
     val customFrom: LocalDate? = null,
@@ -30,6 +32,7 @@ data class TransactionFilter(
         get() = listOf(
             type != null,
             categoryIds.isNotEmpty(),
+            walletIds.isNotEmpty(),
             datePreset != DatePreset.ALL,
             minAmount != null || maxAmount != null,
         ).count { it }
@@ -65,6 +68,7 @@ fun filterTransactions(
     return transactions.filter { t ->
         (filter.type == null || t.type == filter.type) &&
             (filter.categoryIds.isEmpty() || t.categoryId in filter.categoryIds) &&
+            (filter.walletIds.isEmpty() || t.walletId in filter.walletIds) &&
             (from == null || t.date >= from) &&
             (to == null || t.date <= to) &&
             (filter.minAmount == null || t.amount >= filter.minAmount) &&

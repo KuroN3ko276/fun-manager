@@ -6,6 +6,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.AutoMigrationSpec
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
@@ -16,12 +17,15 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         RecurringRule::class,
         SavingsGoal::class,
         SavingsDeposit::class,
+        Wallet::class,
+        Transfer::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
         AutoMigration(from = 2, to = 3),
+        AutoMigration(from = 3, to = 4, spec = Migration3To4::class),
     ],
 )
 @TypeConverters(Converters::class)
@@ -31,6 +35,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun budgetDao(): BudgetDao
     abstract fun recurringDao(): RecurringDao
     abstract fun savingsDao(): SavingsDao
+    abstract fun walletDao(): WalletDao
 
     companion object {
         fun build(context: Context): AppDatabase =
@@ -40,8 +45,26 @@ abstract class AppDatabase : RoomDatabase() {
     }
 }
 
+/** Tạo ví mặc định cho dữ liệu cũ (cột walletId mặc định = 1 trỏ tới ví này). */
+class Migration3To4 : AutoMigrationSpec {
+    override fun onPostMigrate(db: SupportSQLiteDatabase) = insertDefaultWallet(db)
+}
+
+private fun insertDefaultWallet(db: SupportSQLiteDatabase) {
+    val w = DefaultWallet.value
+    db.execSQL(
+        "INSERT OR IGNORE INTO wallets (id, name, icon, color, initialBalance) VALUES (?, ?, ?, ?, ?)",
+        arrayOf(Wallet.DEFAULT_ID, w.name, w.icon, w.color, 0L),
+    )
+}
+
+object DefaultWallet {
+    val value = Wallet(id = Wallet.DEFAULT_ID, name = "Tiền mặt", icon = "cash", color = 0xFF66BB6A)
+}
+
 private object SeedCallback : RoomDatabase.Callback() {
     override fun onCreate(db: SupportSQLiteDatabase) {
+        insertDefaultWallet(db)
         DefaultCategories.all.forEach { c ->
             db.execSQL(
                 "INSERT INTO categories (name, icon, color, type) VALUES (?, ?, ?, ?)",

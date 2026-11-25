@@ -13,7 +13,7 @@
 - [x] **Xu hướng nhiều tháng** — biểu đồ cột thu/chi 6–12 tháng gần nhất.
 - [x] **Tìm kiếm & lọc** — theo danh mục, ghi chú, khoảng tiền, khoảng ngày.
 - [x] **Danh mục tự tạo** — thêm/sửa/xoá danh mục với tên, màu, biểu tượng.
-- [ ] **Nhiều ví/tài khoản** — tiền mặt, ngân hàng, thẻ tín dụng; chuyển tiền giữa ví.
+- [x] **Nhiều ví/tài khoản** — tiền mặt, ngân hàng, thẻ tín dụng; chuyển tiền giữa ví.
 - [ ] **Xuất CSV / sao lưu & khôi phục** — lưu ra file để không mất dữ liệu khi đổi máy.
 - [ ] **Nhắc nhở hằng ngày** — notification nhắc ghi chi tiêu buổi tối.
 - [x] **Widget màn hình chính** — xem nhanh số đã chi / còn lại trong tháng.
