@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,6 +19,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -41,7 +41,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -54,10 +53,11 @@ import com.funmanager.domain.BudgetLevel
 import com.funmanager.domain.BudgetOverview
 import com.funmanager.domain.formatVnd
 import com.funmanager.domain.summarize
-import com.funmanager.ui.components.CategoryIcon
+import com.funmanager.ui.components.DayHeader
 import com.funmanager.ui.components.MoneyText
 import com.funmanager.ui.components.MonthSelector
-import com.funmanager.ui.components.dayHeader
+import com.funmanager.ui.components.TransactionItem
+import com.funmanager.ui.components.TransactionRow
 import com.funmanager.ui.theme.ExpenseColor
 import com.funmanager.ui.theme.FunManagerTheme
 import com.funmanager.ui.theme.IncomeColor
@@ -73,10 +73,11 @@ fun HomeRoute(
     onOpenBudget: () -> Unit,
     onOpenCategories: () -> Unit,
     onOpenRecurring: () -> Unit,
+    onOpenSearch: () -> Unit,
     viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    HomeScreen(state, viewModel::onMonthChange, onAdd, onOpen, onOpenBudget, onOpenCategories, onOpenRecurring)
+    HomeScreen(state, viewModel::onMonthChange, onAdd, onOpen, onOpenBudget, onOpenCategories, onOpenRecurring, onOpenSearch)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,6 +90,7 @@ fun HomeScreen(
     onOpenBudget: () -> Unit,
     onOpenCategories: () -> Unit,
     onOpenRecurring: () -> Unit,
+    onOpenSearch: () -> Unit,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     Scaffold(
@@ -96,6 +98,9 @@ fun HomeScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.app_name)) },
                 actions = {
+                    IconButton(onClick = onOpenSearch) {
+                        Icon(Icons.Filled.Search, stringResource(R.string.search))
+                    }
                     IconButton(onClick = { menuOpen = true }) {
                         Icon(Icons.Filled.MoreVert, stringResource(R.string.more_options))
                     }
@@ -215,51 +220,6 @@ private fun BudgetAlert(budget: BudgetOverview, onClick: () -> Unit) {
     }
 }
 
-@Composable
-private fun DayHeader(date: LocalDate, items: List<TransactionItem>) {
-    val net = items.sumOf {
-        if (it.transaction.type == TransactionType.INCOME) it.transaction.amount else -it.transaction.amount
-    }
-    Row(Modifier.fillMaxWidth().padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(date.dayHeader(), style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-        MoneyText(net, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
-
-@Composable
-private fun TransactionRow(item: TransactionItem, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        CategoryIcon(item.category)
-        Spacer(Modifier.width(12.dp))
-        Column(Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(item.category.name, style = MaterialTheme.typography.bodyLarge)
-                if (item.transaction.recurringId != null) {
-                    Icon(
-                        Icons.Filled.Repeat,
-                        contentDescription = stringResource(R.string.recurring),
-                        modifier = Modifier.padding(start = 4.dp).size(14.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-            if (item.transaction.note.isNotBlank()) {
-                Text(
-                    item.transaction.note,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-        }
-        MoneyText(item.transaction.amount, type = item.transaction.type)
-    }
-}
-
 @Preview(showBackground = true)
 @Composable
 private fun HomeScreenPreview() {
@@ -285,6 +245,7 @@ private fun HomeScreenPreview() {
             onOpenBudget = {},
             onOpenCategories = {},
             onOpenRecurring = {},
+            onOpenSearch = {},
         )
     }
 }

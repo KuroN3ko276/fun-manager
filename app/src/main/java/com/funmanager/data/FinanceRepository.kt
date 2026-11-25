@@ -38,6 +38,8 @@ class FinanceRepository(private val db: AppDatabase) {
     fun transactionsBetween(from: YearMonth, to: YearMonth): Flow<List<Transaction>> =
         db.transactionDao().observeBetween(from.atDay(1), to.atEndOfMonth())
 
+    val allTransactions: Flow<List<Transaction>> = db.transactionDao().observeAll()
+
     suspend fun transaction(id: Long): Transaction? = db.transactionDao().getById(id)
 
     suspend fun save(transaction: Transaction) = db.transactionDao().upsert(transaction)

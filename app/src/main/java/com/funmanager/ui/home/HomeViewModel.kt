@@ -12,6 +12,7 @@ import com.funmanager.domain.BudgetOverview
 import com.funmanager.domain.MonthlySummary
 import com.funmanager.domain.budgetOverview
 import com.funmanager.domain.summarize
+import com.funmanager.ui.components.TransactionItem
 import com.funmanager.ui.container
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,8 +23,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import java.time.LocalDate
 import java.time.YearMonth
-
-data class TransactionItem(val transaction: Transaction, val category: Category)
 
 data class HomeUiState(
     val month: YearMonth = YearMonth.now(),

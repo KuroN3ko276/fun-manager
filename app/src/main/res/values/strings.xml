@@ -116,4 +116,23 @@
     <string name="widget_sample_month">Tháng 11/2026</string>
     <string name="widget_sample_amount">4.250.000 ₫</string>
     <string name="widget_sample_detail">Còn 5.750.000 ₫ / ngân sách 10.000.000 ₫</string>
+
+    <string name="search">Tìm kiếm</string>
+    <string name="search_hint">Tìm theo ghi chú, danh mục…</string>
+    <string name="clear">Xoá chữ</string>
+    <string name="filters">Bộ lọc</string>
+    <string name="search_count">%1$d giao dịch</string>
+    <string name="search_empty">Không tìm thấy giao dịch phù hợp</string>
+    <string name="filter_type">Loại</string>
+    <string name="all">Tất cả</string>
+    <string name="filter_time">Thời gian</string>
+    <string name="preset_all">Mọi lúc</string>
+    <string name="preset_this_month">Tháng này</string>
+    <string name="preset_3_months">3 tháng gần đây</string>
+    <string name="preset_this_year">Năm nay</string>
+    <string name="preset_custom">Chọn khoảng ngày…</string>
+    <string name="filter_amount">Số tiền (₫)</string>
+    <string name="amount_from">Từ</string>
+    <string name="amount_to">Đến</string>
+    <string name="clear_filters">Xoá bộ lọc</string>
 </resources>

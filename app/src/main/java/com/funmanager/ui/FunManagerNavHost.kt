@@ -45,6 +45,7 @@ import com.funmanager.ui.savings.EditGoalViewModel
 import com.funmanager.ui.savings.GoalDetailRoute
 import com.funmanager.ui.savings.GoalDetailViewModel
 import com.funmanager.ui.savings.SavingsRoute
+import com.funmanager.ui.search.SearchRoute
 
 private enum class Tab(val route: String, @StringRes val label: Int, val icon: ImageVector) {
     Transactions("home", R.string.tab_transactions, Icons.AutoMirrored.Filled.ReceiptLong),
@@ -57,6 +58,7 @@ private const val EDIT_ROUTE = "edit?${EditTransactionViewModel.ARG_ID}={${EditT
 
 private const val CATEGORIES_ROUTE = "categories"
 private const val RECURRING_ROUTE = "recurring"
+private const val SEARCH_ROUTE = "search"
 private const val RECURRING_EDIT_ROUTE =
     "recurring/edit?${EditRecurringViewModel.ARG_ID}={${EditRecurringViewModel.ARG_ID}}"
 
@@ -138,6 +140,13 @@ fun FunManagerNavHost(addRequested: Boolean = false, onAddHandled: () -> Unit = 
                     },
                     onOpenCategories = { navController.navigate(CATEGORIES_ROUTE) },
                     onOpenRecurring = { navController.navigate(RECURRING_ROUTE) },
+                    onOpenSearch = { navController.navigate(SEARCH_ROUTE) },
+                )
+            }
+            composable(SEARCH_ROUTE) {
+                SearchRoute(
+                    onBack = { navController.popBackStack() },
+                    onOpen = { navController.navigate(editRoute(it)) },
                 )
             }
             composable(RECURRING_ROUTE) {
