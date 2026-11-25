@@ -108,9 +108,8 @@
     <string name="delete_goal_title">Xoá mục tiêu?</string>
     <string name="delete_goal_message">Mục tiêu và toàn bộ lịch sử nạp/rút sẽ bị xoá.</string>
 
-    <string name="widget_description">Số đã chi trong tháng và ngân sách còn lại</string>
+    <string name="widget_description">Số đã chi và số tiền còn lại theo danh mục</string>
     <string name="widget_spent">Đã chi tháng này</string>
-    <string name="widget_no_budget">Thu %1$s · Số dư %2$s</string>
     <string name="widget_left_budget">Còn %1$s / ngân sách %2$s</string>
     <string name="widget_over_budget">Vượt %1$s / ngân sách %2$s</string>
     <string name="widget_sample_month">Tháng 11/2026</string>
@@ -179,4 +178,15 @@
     <string name="use_pin">Dùng mã PIN</string>
     <string name="backspace">Xoá</string>
     <string name="biometric_title">Mở khoá</string>
+
+    <string name="widget_settings">Tuỳ chỉnh widget</string>
+    <string name="widget_empty_hint">Chạm ⚙ để chọn danh mục hiển thị</string>
+    <string name="widget_cat_left">Còn %1$s</string>
+    <string name="widget_cat_over">Vượt %1$s</string>
+    <string name="widget_cat_spent">Đã chi %1$s</string>
+    <string name="widget_config_title">Tuỳ chỉnh widget</string>
+    <string name="widget_show_total">Hiện tổng chi &amp; ngân sách tổng</string>
+    <string name="widget_pick_categories">Danh mục hiển thị (tối đa %1$d)</string>
+    <string name="widget_pick_hint">Mỗi danh mục hiện số tiền còn lại = ngân sách − đã chi. Danh mục chưa đặt ngân sách sẽ hiện số đã chi. Thu nhập không được hiển thị.</string>
+    <string name="widget_no_budget_short">chưa đặt ngân sách</string>
 </resources>

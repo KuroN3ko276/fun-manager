@@ -2,6 +2,8 @@ package com.funmanager.data
 
 import androidx.room.withTransaction
 import com.funmanager.domain.MonthSnapshot
+import com.funmanager.domain.WidgetCategoryLine
+import com.funmanager.domain.widgetCategoryLines
 import com.funmanager.domain.dueOccurrences
 import com.funmanager.domain.resumeMonth
 import kotlinx.coroutines.flow.Flow
@@ -157,4 +159,19 @@ class FinanceRepository(private val db: AppDatabase) {
     suspend fun addTransfer(transfer: Transfer) = db.walletDao().insertTransfer(transfer)
 
     suspend fun deleteTransfer(id: Long) = db.walletDao().deleteTransfer(id)
+
+    /** Dữ liệu widget: tổng tháng + các dòng danh mục đã chọn (null = mặc định). */
+    suspend fun widgetData(month: YearMonth, selectedIds: List<Long>?): WidgetData {
+        val budgets = db.budgetDao().getForMonth(month)
+        val spent = db.transactionDao().expenseByCategory(month.atDay(1), month.atEndOfMonth())
+            .associate { it.categoryId to it.total }
+        return WidgetData(
+            snapshot = monthSnapshot(month),
+            lines = widgetCategoryLines(selectedIds, db.categoryDao().getAll(), spent, budgets),
+        )
+    }
+
+    suspend fun allCategories(): List<Category> = db.categoryDao().getAll()
 }
+
+data class WidgetData(val snapshot: MonthSnapshot, val lines: List<WidgetCategoryLine>)

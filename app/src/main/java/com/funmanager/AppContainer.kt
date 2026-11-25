@@ -39,11 +39,11 @@ class AppContainer(context: Context) {
         appScope.launch { repository.generateDueRecurring() }
     }
 
-    /** Vẽ lại widget mỗi khi giao dịch hoặc ngân sách của tháng hiện tại thay đổi. */
+    /** Vẽ lại widget mỗi khi giao dịch, ngân sách của tháng hiện tại hoặc danh mục thay đổi. */
     private fun watchForWidget() {
         appScope.launch {
             val month = YearMonth.now()
-            combine(repository.transactionsIn(month), repository.budgetsIn(month)) { _, _ -> }
+            combine(repository.transactionsIn(month), repository.budgetsIn(month), repository.categories) { _, _, _ -> }
                 .collectLatest {
                     delay(WIDGET_DEBOUNCE_MS)
                     SummaryWidgetProvider.updateAll(appContext)

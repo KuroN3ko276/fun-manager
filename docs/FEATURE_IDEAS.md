@@ -16,6 +16,6 @@
 - [x] **Nhiều ví/tài khoản** — tiền mặt, ngân hàng, thẻ tín dụng; chuyển tiền giữa ví.
 - [ ] **Xuất CSV / sao lưu & khôi phục** — lưu ra file để không mất dữ liệu khi đổi máy.
 - [ ] **Nhắc nhở hằng ngày** — notification nhắc ghi chi tiêu buổi tối.
-- [x] **Widget màn hình chính** — xem nhanh số đã chi / còn lại trong tháng.
+- [x] **Widget màn hình chính** — số đã chi, số tiền còn lại theo danh mục tự chọn (không hiện thu nhập).
 - [x] **Khoá app** — vân tay hoặc PIN.
 - [x] **Mục tiêu tiết kiệm** — đặt mục tiêu và theo dõi tiến độ.

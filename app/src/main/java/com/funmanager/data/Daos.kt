@@ -14,6 +14,9 @@ interface CategoryDao {
     @Query("SELECT * FROM categories ORDER BY type, id")
     fun observeAll(): Flow<List<Category>>
 
+    @Query("SELECT * FROM categories ORDER BY type, id")
+    suspend fun getAll(): List<Category>
+
     @Upsert
     suspend fun upsert(category: Category)
 
@@ -43,6 +46,14 @@ interface TransactionDao {
 
     @Query("SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE type = :type AND date BETWEEN :start AND :end")
     suspend fun sumBetween(type: TransactionType, start: LocalDate, end: LocalDate): Long
+
+    @Query(
+        """
+        SELECT categoryId, SUM(amount) AS total FROM transactions
+        WHERE type = 'EXPENSE' AND date BETWEEN :start AND :end GROUP BY categoryId
+        """,
+    )
+    suspend fun expenseByCategory(start: LocalDate, end: LocalDate): List<CategorySum>
 
     @Query("SELECT COUNT(*) FROM transactions WHERE categoryId = :categoryId")
     suspend fun countForCategory(categoryId: Long): Int

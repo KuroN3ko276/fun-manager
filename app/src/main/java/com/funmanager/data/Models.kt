@@ -142,3 +142,6 @@ data class Transfer(
 
 /** Tổng thu − chi của một ví. */
 data class WalletNet(val walletId: Long, val net: Long)
+
+/** Tổng tiền theo danh mục (kết quả truy vấn gộp). */
+data class CategorySum(val categoryId: Long, val total: Long)
