@@ -3,16 +3,22 @@ package com.funmanager
 import android.content.Context
 import com.funmanager.data.AppDatabase
 import com.funmanager.data.FinanceRepository
+import com.funmanager.widget.SummaryWidgetProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.time.YearMonth
 
 /** DI thủ công: giữ các đối tượng dùng chung toàn app. */
 class AppContainer(context: Context) {
-    val repository = FinanceRepository(AppDatabase.build(context))
+    private val appContext = context.applicationContext
+
+    val repository = FinanceRepository(AppDatabase.build(appContext))
 
     /** Phạm vi coroutine sống cùng app, cho các việc nền ngắn. */
     val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -20,8 +26,28 @@ class AppContainer(context: Context) {
     /** Tháng đang xem, dùng chung giữa các tab. */
     val selectedMonth = MutableStateFlow(YearMonth.now())
 
+    init {
+        watchForWidget()
+    }
+
     /** Tạo các giao dịch định kỳ đã đến hạn. */
     fun runRecurring() {
         appScope.launch { repository.generateDueRecurring() }
+    }
+
+    /** Vẽ lại widget mỗi khi giao dịch hoặc ngân sách của tháng hiện tại thay đổi. */
+    private fun watchForWidget() {
+        appScope.launch {
+            val month = YearMonth.now()
+            combine(repository.transactionsIn(month), repository.budgetsIn(month)) { _, _ -> }
+                .collectLatest {
+                    delay(WIDGET_DEBOUNCE_MS)
+                    SummaryWidgetProvider.updateAll(appContext)
+                }
+        }
+    }
+
+    private companion object {
+        const val WIDGET_DEBOUNCE_MS = 500L
     }
 }

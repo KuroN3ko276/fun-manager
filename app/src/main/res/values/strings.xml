@@ -108,4 +108,13 @@
     <string name="delete_deposit_message">%1$s ngày %2$s</string>
     <string name="delete_goal_title">Xoá mục tiêu?</string>
     <string name="delete_goal_message">Mục tiêu và toàn bộ lịch sử nạp/rút sẽ bị xoá.</string>
+
+    <string name="widget_description">Số đã chi trong tháng và ngân sách còn lại</string>
+    <string name="widget_spent">Đã chi tháng này</string>
+    <string name="widget_no_budget">Thu %1$s · Số dư %2$s</string>
+    <string name="widget_left_budget">Còn %1$s / ngân sách %2$s</string>
+    <string name="widget_over_budget">Vượt %1$s / ngân sách %2$s</string>
+    <string name="widget_sample_month">Tháng 11/2026</string>
+    <string name="widget_sample_amount">4.250.000 ₫</string>
+    <string name="widget_sample_detail">Còn 5.750.000 ₫ / ngân sách 10.000.000 ₫</string>
 </resources>

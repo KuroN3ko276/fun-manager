@@ -1,6 +1,7 @@
 package com.funmanager.data
 
 import androidx.room.withTransaction
+import com.funmanager.domain.MonthSnapshot
 import com.funmanager.domain.dueOccurrences
 import com.funmanager.domain.resumeMonth
 import kotlinx.coroutines.flow.Flow
@@ -112,4 +113,16 @@ class FinanceRepository(private val db: AppDatabase) {
     suspend fun addSavingsDeposit(deposit: SavingsDeposit) = db.savingsDao().insertDeposit(deposit)
 
     suspend fun deleteSavingsDeposit(id: Long) = db.savingsDao().deleteDeposit(id)
+
+    /** Số liệu tóm tắt của [month] cho widget. */
+    suspend fun monthSnapshot(month: YearMonth): MonthSnapshot {
+        val start = month.atDay(1)
+        val end = month.atEndOfMonth()
+        return MonthSnapshot(
+            month = month,
+            income = db.transactionDao().sumBetween(TransactionType.INCOME, start, end),
+            expense = db.transactionDao().sumBetween(TransactionType.EXPENSE, start, end),
+            totalBudget = db.budgetDao().getForMonth(month).firstOrNull { it.categoryId == Budget.TOTAL_CATEGORY_ID }?.limit,
+        )
+    }
 }

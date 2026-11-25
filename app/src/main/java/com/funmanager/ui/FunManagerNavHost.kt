@@ -14,6 +14,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -67,8 +68,14 @@ private fun recurringEditRoute(id: Long = EditRecurringViewModel.NEW_ID) =
 private fun editRoute(id: Long = EditTransactionViewModel.NEW_ID) = "edit?${EditTransactionViewModel.ARG_ID}=$id"
 
 @Composable
-fun FunManagerNavHost() {
+fun FunManagerNavHost(addRequested: Boolean = false, onAddHandled: () -> Unit = {}) {
     val navController = rememberNavController()
+    LaunchedEffect(addRequested) {
+        if (addRequested) {
+            navController.navigate(editRoute()) { launchSingleTop = true }
+            onAddHandled()
+        }
+    }
     val backStack by navController.currentBackStackEntryAsState()
     val currentRoute = backStack?.destination?.route
 
