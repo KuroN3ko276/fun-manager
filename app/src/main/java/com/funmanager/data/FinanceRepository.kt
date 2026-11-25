@@ -1,12 +1,16 @@
 package com.funmanager.data
 
 import androidx.room.withTransaction
+import com.funmanager.domain.BudgetChange
 import com.funmanager.domain.MonthSnapshot
+import com.funmanager.domain.budgetChange
+import com.funmanager.domain.effectiveBudgets
 import com.funmanager.domain.WidgetCategoryLine
 import com.funmanager.domain.widgetCategoryLines
 import com.funmanager.domain.dueOccurrences
 import com.funmanager.domain.resumeMonth
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.time.LocalDate
@@ -48,19 +52,19 @@ class FinanceRepository(private val db: AppDatabase) {
 
     suspend fun delete(transaction: Transaction) = db.transactionDao().delete(transaction)
 
-    fun budgetsIn(month: YearMonth): Flow<List<Budget>> = db.budgetDao().observeForMonth(month)
+    /** Hạn mức đang áp dụng cho [month] (kế thừa từ lần đặt gần nhất trước đó). */
+    fun budgetsIn(month: YearMonth): Flow<List<Budget>> =
+        db.budgetDao().observeUpTo(month).map { effectiveBudgets(it, month) }
 
-    suspend fun setBudget(month: YearMonth, categoryId: Long, limit: Long?) {
-        if (limit == null || limit <= 0) {
-            db.budgetDao().delete(month, categoryId)
-        } else {
-            db.budgetDao().upsert(Budget(month, categoryId, limit))
+    private suspend fun effectiveBudgetsAt(month: YearMonth): List<Budget> =
+        effectiveBudgets(db.budgetDao().getUpTo(month), month)
+
+    /** Đặt (hoặc bỏ khi [limit] null/≤0) hạn mức từ [month] trở đi, cho tới lần sửa tiếp theo. */
+    suspend fun setBudget(month: YearMonth, categoryId: Long, limit: Long?) = db.withTransaction {
+        when (val change = budgetChange(db.budgetDao().getForCategory(categoryId), month, categoryId, limit)) {
+            is BudgetChange.Upsert -> db.budgetDao().upsert(change.budget)
+            is BudgetChange.Delete -> db.budgetDao().delete(change.month, change.categoryId)
         }
-    }
-
-    /** Sao chép ngân sách của tháng [from] sang tháng [to]. */
-    suspend fun copyBudgets(from: YearMonth, to: YearMonth) {
-        db.budgetDao().getForMonth(from).forEach { db.budgetDao().upsert(it.copy(month = to)) }
     }
 
     val recurringRules: Flow<List<RecurringRule>> = db.recurringDao().observeAll()
@@ -127,7 +131,7 @@ class FinanceRepository(private val db: AppDatabase) {
             month = month,
             income = db.transactionDao().sumBetween(TransactionType.INCOME, start, end),
             expense = db.transactionDao().sumBetween(TransactionType.EXPENSE, start, end),
-            totalBudget = db.budgetDao().getForMonth(month).firstOrNull { it.categoryId == Budget.TOTAL_CATEGORY_ID }?.limit,
+            totalBudget = effectiveBudgetsAt(month).firstOrNull { it.categoryId == Budget.TOTAL_CATEGORY_ID }?.limit,
         )
     }
 
@@ -162,7 +166,7 @@ class FinanceRepository(private val db: AppDatabase) {
 
     /** Dữ liệu widget: tổng tháng + các dòng danh mục đã chọn (null = mặc định). */
     suspend fun widgetData(month: YearMonth, selectedIds: List<Long>?): WidgetData {
-        val budgets = db.budgetDao().getForMonth(month)
+        val budgets = effectiveBudgetsAt(month)
         val spent = db.transactionDao().expenseByCategory(month.atDay(1), month.atEndOfMonth())
             .associate { it.categoryId to it.total }
         return WidgetData(

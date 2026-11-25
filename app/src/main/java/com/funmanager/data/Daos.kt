@@ -64,11 +64,15 @@ interface TransactionDao {
 
 @Dao
 interface BudgetDao {
-    @Query("SELECT * FROM budgets WHERE month = :month")
-    fun observeForMonth(month: YearMonth): Flow<List<Budget>>
+    /** Mọi lần đặt hạn mức từ trước tới [month] (tháng lưu dạng "yyyy-MM" nên so sánh chuỗi đúng thứ tự). */
+    @Query("SELECT * FROM budgets WHERE month <= :month")
+    fun observeUpTo(month: YearMonth): Flow<List<Budget>>
 
-    @Query("SELECT * FROM budgets WHERE month = :month")
-    suspend fun getForMonth(month: YearMonth): List<Budget>
+    @Query("SELECT * FROM budgets WHERE month <= :month")
+    suspend fun getUpTo(month: YearMonth): List<Budget>
+
+    @Query("SELECT * FROM budgets WHERE categoryId = :categoryId")
+    suspend fun getForCategory(categoryId: Long): List<Budget>
 
     @Upsert
     suspend fun upsert(budget: Budget)

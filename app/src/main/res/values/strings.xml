@@ -36,15 +36,15 @@
 
     <string name="total_budget">Ngân sách tổng</string>
     <string name="budget_by_category">Theo danh mục</string>
-    <string name="tap_to_set_budget">Chạm để đặt ngân sách cho tháng này</string>
+    <string name="tap_to_set_budget">Chạm để đặt ngân sách tổng (áp dụng từ tháng này trở đi)</string>
     <string name="spent_amount">Đã chi %1$s</string>
     <string name="spent_no_budget">Đã chi %1$s · chưa đặt ngân sách</string>
     <string name="budget_remaining">Còn lại %1$s</string>
     <string name="budget_warning">Sắp hết! Chỉ còn %1$s</string>
     <string name="budget_exceeded">Đã vượt %1$s</string>
     <string name="monthly_limit">Hạn mức tháng</string>
-    <string name="limit_hint">Để trống để xoá ngân sách</string>
-    <string name="copy_previous_budgets">Dùng ngân sách của tháng trước</string>
+    <string name="limit_hint_from">Áp dụng từ %1$s trở đi, cho tới khi bạn sửa.</string>
+    <string name="remove_limit">Bỏ hạn mức</string>
     <string name="alert_total_exceeded">Bạn đã vượt ngân sách tháng %1$s</string>
     <string name="alert_total_warning">Bạn đã dùng %1$d%% ngân sách tháng</string>
     <string name="alert_categories">Cần chú ý: %1$s</string>
@@ -189,4 +189,7 @@
     <string name="widget_pick_categories">Danh mục hiển thị (tối đa %1$d)</string>
     <string name="widget_pick_hint">Mỗi danh mục hiện số tiền còn lại = ngân sách − đã chi. Danh mục chưa đặt ngân sách sẽ hiện số đã chi. Thu nhập không được hiển thị.</string>
     <string name="widget_no_budget_short">chưa đặt ngân sách</string>
+
+    <string name="budget_carry_over_note">Hạn mức đặt ở một tháng sẽ được giữ cho các tháng sau, cho tới khi bạn sửa. Số đã chi tính lại từ 0 mỗi tháng.</string>
+    <string name="budget_since">Áp dụng từ %1$s</string>
 </resources>

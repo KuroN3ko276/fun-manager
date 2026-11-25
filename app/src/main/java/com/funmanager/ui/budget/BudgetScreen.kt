@@ -20,22 +20,28 @@ import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -57,13 +63,15 @@ import com.funmanager.ui.components.CategoryIcon
 import com.funmanager.ui.components.MoneyText
 import com.funmanager.ui.components.MonthSelector
 import com.funmanager.ui.components.color
+import com.funmanager.ui.components.formatAmountInput
+import com.funmanager.ui.components.label
 import com.funmanager.ui.theme.FunManagerTheme
 import java.time.YearMonth
 
 @Composable
 fun BudgetRoute(viewModel: BudgetViewModel = viewModel(factory = BudgetViewModel.Factory)) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    BudgetScreen(state, viewModel::onMonthChange, viewModel::setLimit, viewModel::copyPrevious)
+    BudgetScreen(state, viewModel::onMonthChange, viewModel::setLimit)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,7 +80,6 @@ fun BudgetScreen(
     state: BudgetUiState,
     onMonthChange: (YearMonth) -> Unit,
     onSetLimit: (categoryId: Long, text: String) -> Unit,
-    onCopyPrevious: () -> Unit,
 ) {
     var editing by rememberSaveable { mutableStateOf<Long?>(null) }
 
@@ -87,18 +94,18 @@ fun BudgetScreen(
         ) {
             item { MonthSelector(state.month, onMonthChange) }
             item { TotalBudgetCard(state, onClick = { editing = Budget.TOTAL_CATEGORY_ID }) }
-            if (state.canCopyPrevious) {
-                item {
-                    OutlinedButton(onClick = onCopyPrevious, modifier = Modifier.fillMaxWidth()) {
-                        Text(stringResource(R.string.copy_previous_budgets))
-                    }
-                }
+            item {
+                Text(
+                    stringResource(R.string.budget_carry_over_note),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
             item {
                 Text(stringResource(R.string.budget_by_category), style = MaterialTheme.typography.titleSmall)
             }
             items(state.overview.categories, key = { it.category.id }) { row ->
-                CategoryBudgetRow(row, onClick = { editing = row.category.id })
+                CategoryBudgetRow(row, inheritedSince(state, row.category.id), onClick = { editing = row.category.id })
             }
         }
     }
@@ -111,6 +118,7 @@ fun BudgetScreen(
         }
         LimitDialog(
             title = name,
+            month = state.month,
             initial = state.limits[categoryId],
             onDismiss = { editing = null },
             onSave = { text ->
@@ -134,14 +142,14 @@ private fun TotalBudgetCard(state: BudgetUiState, onClick: () -> Unit) {
                     style = MaterialTheme.typography.bodyMedium,
                 )
             } else {
-                ProgressDetails(total, large = true)
+                ProgressDetails(total, large = true, since = inheritedSince(state, Budget.TOTAL_CATEGORY_ID))
             }
         }
     }
 }
 
 @Composable
-private fun ProgressDetails(progress: BudgetProgress, large: Boolean = false) {
+private fun ProgressDetails(progress: BudgetProgress, large: Boolean = false, since: YearMonth? = null) {
     Row(verticalAlignment = Alignment.Bottom) {
         MoneyText(
             progress.spent,
@@ -157,10 +165,21 @@ private fun ProgressDetails(progress: BudgetProgress, large: Boolean = false) {
         BudgetLevel.OK -> stringResource(R.string.budget_remaining, formatVnd(progress.remaining))
     }
     Text(message, style = MaterialTheme.typography.bodySmall, color = progress.level.color())
+    if (since != null) {
+        Text(
+            stringResource(R.string.budget_since, since.label()),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
 }
 
+/** Tháng bắt đầu áp dụng nếu hạn mức được kế thừa từ tháng trước; null nếu đặt ngay trong tháng đang xem. */
+private fun inheritedSince(state: BudgetUiState, categoryId: Long): YearMonth? =
+    state.since[categoryId]?.takeIf { it < state.month }
+
 @Composable
-private fun CategoryBudgetRow(row: CategoryBudget, onClick: () -> Unit) {
+private fun CategoryBudgetRow(row: CategoryBudget, since: YearMonth?, onClick: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -178,35 +197,48 @@ private fun CategoryBudgetRow(row: CategoryBudget, onClick: () -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             } else {
-                ProgressDetails(progress)
+                ProgressDetails(progress, since = since)
             }
         }
     }
 }
 
 @Composable
-private fun LimitDialog(title: String, initial: Long?, onDismiss: () -> Unit, onSave: (String) -> Unit) {
-    var text by rememberSaveable { mutableStateOf(initial?.let { groupDigits(it.toString()) }.orEmpty()) }
+private fun LimitDialog(title: String, month: YearMonth, initial: Long?, onDismiss: () -> Unit, onSave: (String) -> Unit) {
+    val initialText = initial?.let { groupDigits(it.toString()) }.orEmpty()
+    var value by remember { mutableStateOf(TextFieldValue(initialText, selection = TextRange(initialText.length))) }
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) { focus.requestFocus() }
     AlertDialog(
         onDismissRequest = onDismiss,
-        icon = { androidx.compose.material3.Icon(Icons.Filled.Savings, contentDescription = null) },
+        icon = { Icon(Icons.Filled.Savings, contentDescription = null) },
         title = { Text(title) },
         text = {
             OutlinedTextField(
-                value = text,
+                value = value,
                 onValueChange = { v ->
-                    val digits = v.filter(Char::isDigit).trimStart('0').take(13)
-                    text = if (digits.isEmpty()) "" else groupDigits(digits)
+                    val formatted = formatAmountInput(v.text)
+                    value = TextFieldValue(formatted, selection = TextRange(formatted.length))
                 },
                 label = { Text(stringResource(R.string.monthly_limit)) },
                 suffix = { Text("₫") },
-                supportingText = { Text(stringResource(R.string.limit_hint)) },
+                supportingText = { Text(stringResource(R.string.limit_hint_from, month.label())) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.focusRequester(focus),
             )
         },
-        confirmButton = { TextButton(onClick = { onSave(text) }) { Text(stringResource(R.string.save)) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+        confirmButton = { TextButton(onClick = { onSave(value.text) }) { Text(stringResource(R.string.save)) } },
+        dismissButton = {
+            Row {
+                if (initial != null) {
+                    TextButton(onClick = { onSave("") }) {
+                        Text(stringResource(R.string.remove_limit), color = MaterialTheme.colorScheme.error)
+                    }
+                }
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+            }
+        },
     )
 }
 
@@ -231,7 +263,6 @@ private fun BudgetScreenPreview() {
             ),
             onMonthChange = {},
             onSetLimit = { _, _ -> },
-            onCopyPrevious = {},
         )
     }
 }

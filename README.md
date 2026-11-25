@@ -9,7 +9,7 @@ Mọi dữ liệu chỉ lưu trên điện thoại: không cần tài khoản, k
 |---|---|
 | **Giao dịch** | Thêm / sửa / xoá khoản chi và khoản thu, chọn danh mục, ngày, ví, ghi chú. Xem theo tháng với tổng thu, tổng chi và số dư. |
 | **Báo cáo** | Biểu đồ tròn chi tiêu theo danh mục, so sánh với tháng trước, biểu đồ cột thu/chi 6 tháng gần nhất. |
-| **Ngân sách** | Đặt hạn mức tổng và theo từng danh mục. Cảnh báo khi dùng ≥ 80% và khi vượt. Sao chép ngân sách từ tháng trước. |
+| **Ngân sách** | Đặt hạn mức tổng và theo từng danh mục; hạn mức được giữ cho các tháng sau cho tới khi bạn sửa. Cảnh báo khi dùng ≥ 80% và khi vượt. |
 | **Giao dịch định kỳ** | Lương, tiền nhà, tiền mạng… tự ghi vào ngày bạn chọn (1–31) mỗi tháng. Tháng ngắn hơn thì ghi vào ngày cuối tháng. |
 | **Tiết kiệm** | Mục tiêu có số tiền và hạn hoàn thành. Nạp / rút có lịch sử. App tính số cần để dành mỗi tháng để kịp hạn. |
 | **Nhiều ví** | Tiền mặt, ngân hàng, ví điện tử, thẻ tín dụng. Số dư từng ví, tổng tài sản, chuyển tiền giữa các ví. |

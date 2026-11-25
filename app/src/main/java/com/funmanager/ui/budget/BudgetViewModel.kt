@@ -25,8 +25,8 @@ data class BudgetUiState(
     val month: YearMonth = YearMonth.now(),
     val overview: BudgetOverview = BudgetOverview.EMPTY,
     val limits: Map<Long, Long> = emptyMap(),
-    /** Tháng trước có ngân sách và tháng này chưa có → gợi ý sao chép. */
-    val canCopyPrevious: Boolean = false,
+    /** Tháng bắt đầu áp dụng của từng hạn mức (để hiện "từ tháng X"). */
+    val since: Map<Long, YearMonth> = emptyMap(),
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -39,14 +39,13 @@ class BudgetViewModel(
         combine(
             repository.transactionsIn(month),
             repository.budgetsIn(month),
-            repository.budgetsIn(month.minusMonths(1)),
             repository.categories,
-        ) { transactions, budgets, previousBudgets, categories ->
+        ) { transactions, budgets, categories ->
             BudgetUiState(
                 month = month,
                 overview = budgetOverview(summarize(transactions, categories), budgets, categories),
                 limits = budgets.associate { it.categoryId to it.limit },
-                canCopyPrevious = budgets.isEmpty() && previousBudgets.isNotEmpty(),
+                since = budgets.associate { it.categoryId to it.month },
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), BudgetUiState())
@@ -55,15 +54,10 @@ class BudgetViewModel(
         selectedMonth.value = month
     }
 
-    /** [categoryId] = [Budget.TOTAL_CATEGORY_ID] cho ngân sách tổng; chuỗi rỗng để xoá. */
+    /** [categoryId] = [Budget.TOTAL_CATEGORY_ID] cho ngân sách tổng; chuỗi rỗng để bỏ từ tháng này. */
     fun setLimit(categoryId: Long, text: String) {
         val month = selectedMonth.value
         viewModelScope.launch { repository.setBudget(month, categoryId, parseVnd(text)) }
-    }
-
-    fun copyPrevious() {
-        val month = selectedMonth.value
-        viewModelScope.launch { repository.copyBudgets(month.minusMonths(1), month) }
     }
 
     companion object {
