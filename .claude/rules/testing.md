@@ -9,3 +9,6 @@
   ```
   Cả hai phải thành công. Không commit khi test đỏ.
 - Không đánh dấu tính năng "xong" khi chưa build được APK.
+- Đo hiệu năng (khởi động, giật lag) trên **bản release** (`installRelease`), không trên bản debug.
+  Dùng `adb shell am start -W` (TotalTime) và `adb shell dumpsys gfxinfo com.funmanager` (Janky frames, percentiles).
+- Sau khi đổi cấu hình R8/release, mở thử mọi màn trên máy thật để chắc R8 không làm hỏng gì.

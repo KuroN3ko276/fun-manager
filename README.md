@@ -30,12 +30,13 @@ Yêu cầu Android 8.0 (API 26) trở lên. Vân tay cần Android 11 trở lên
 2. Vào **Tùy chọn nhà phát triển**, bật **Gỡ lỗi USB**, cắm cáp và bấm **Cho phép** trên điện thoại.
 3. Chạy:
    ```bash
-   ./gradlew installDebug
+   ./gradlew installRelease
    ```
+   Bản **release** đã được tối ưu (R8): mở app nhanh hơn khoảng 4 lần và APK chỉ ~1,7 MB so với bản debug.
 
 **Cách 2: chép file APK**
 
-Sau khi build, gửi file `app/build/outputs/apk/debug/app-debug.apk` sang điện thoại rồi mở để cài.
+Sau khi build (`./gradlew assembleRelease`), gửi file `app/build/outputs/apk/release/app-release.apk` sang điện thoại rồi mở để cài.
 Lần đầu cần cho phép *Cài ứng dụng không rõ nguồn gốc*.
 
 > Cài bản mới đè lên bản cũ không làm mất dữ liệu: database được nâng cấp tự động.
@@ -74,8 +75,9 @@ export JAVA_HOME=$HOME/Android/jdk-17
 export ANDROID_HOME=$HOME/Android/Sdk
 
 ./gradlew test            # chạy unit test
-./gradlew assembleDebug   # build APK → app/build/outputs/apk/debug/app-debug.apk
-./gradlew installDebug    # build và cài lên điện thoại đang cắm
+./gradlew assembleRelease # build APK tối ưu → app/build/outputs/apk/release/app-release.apk
+./gradlew installRelease  # build và cài bản tối ưu lên điện thoại đang cắm
+./gradlew installDebug    # bản debug (chậm hơn, dùng khi phát triển / cần đọc database)
 ```
 
 Nếu Gradle không tìm thấy SDK, tạo file `local.properties` ở thư mục gốc (file này không được commit):

@@ -19,7 +19,11 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            // App cá nhân, cài tay: ký bằng khoá debug để cài đè lẫn nhau với bản debug mà không mất dữ liệu.
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
