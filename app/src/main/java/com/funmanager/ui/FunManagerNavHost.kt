@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.PieChart
-import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -28,9 +27,11 @@ import com.funmanager.R
 import com.funmanager.ui.edit.EditTransactionRoute
 import com.funmanager.ui.edit.EditTransactionViewModel
 import com.funmanager.ui.home.HomeRoute
+import com.funmanager.ui.report.ReportRoute
 
 private enum class Tab(val route: String, @StringRes val label: Int, val icon: ImageVector) {
     Transactions("home", R.string.tab_transactions, Icons.AutoMirrored.Filled.ReceiptLong),
+    Report("report", R.string.tab_report, Icons.Filled.PieChart),
 }
 
 private const val EDIT_ROUTE = "edit?${EditTransactionViewModel.ARG_ID}={${EditTransactionViewModel.ARG_ID}}"
@@ -46,7 +47,7 @@ fun FunManagerNavHost() {
     Scaffold(
         contentWindowInsets = WindowInsets(0),
         bottomBar = {
-            if (Tab.entries.size > 1 && Tab.entries.any { it.route == currentRoute }) {
+            if (Tab.entries.any { it.route == currentRoute }) {
                 NavigationBar {
                     Tab.entries.forEach { tab ->
                         NavigationBarItem(
@@ -73,6 +74,7 @@ fun FunManagerNavHost() {
                     onOpen = { navController.navigate(editRoute(it)) },
                 )
             }
+            composable(Tab.Report.route) { ReportRoute() }
             composable(
                 EDIT_ROUTE,
                 arguments = listOf(

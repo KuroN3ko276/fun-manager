@@ -46,3 +46,18 @@ class MonthlySummaryTest {
         assertEquals(emptyList<CategoryTotal>(), s.expenseByCategory)
     }
 }
+
+class PercentChangeTest {
+    @Test
+    fun computesRoundedChange() {
+        assertEquals(20, percentChange(1_200_000, 1_000_000))
+        assertEquals(-25, percentChange(750_000, 1_000_000))
+        assertEquals(0, percentChange(1_000_000, 1_000_000))
+        assertEquals(33, percentChange(400, 300))
+    }
+
+    @Test
+    fun nullWhenNoPreviousData() {
+        assertEquals(null, percentChange(500_000, 0))
+    }
+}

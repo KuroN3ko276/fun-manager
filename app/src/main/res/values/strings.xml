@@ -27,4 +27,10 @@
     <string name="cancel">Huỷ</string>
     <string name="delete_confirm_title">Xoá giao dịch?</string>
     <string name="delete_confirm_message">Giao dịch này sẽ bị xoá vĩnh viễn.</string>
+
+    <string name="total_expense">Tổng chi</string>
+    <string name="total_income">Tổng thu</string>
+    <string name="change_up">▲ %1$d%% so với tháng trước</string>
+    <string name="change_down">▼ %1$d%% so với tháng trước</string>
+    <string name="change_same">Bằng tháng trước</string>
 </resources>

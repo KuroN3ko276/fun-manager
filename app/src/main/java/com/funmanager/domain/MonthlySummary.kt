@@ -45,3 +45,9 @@ fun summarize(transactions: List<Transaction>, categories: List<Category>): Mont
         incomeByCategory = totals(TransactionType.INCOME),
     )
 }
+
+/** % thay đổi so với kỳ trước, làm tròn; null nếu kỳ trước bằng 0. */
+fun percentChange(current: Long, previous: Long): Int? {
+    if (previous == 0L) return null
+    return Math.round((current - previous) * 100.0 / previous).toInt()
+}
