@@ -24,4 +24,9 @@ class FinanceRepository(private val db: AppDatabase) {
             db.budgetDao().upsert(Budget(month, categoryId, limit))
         }
     }
+
+    /** Sao chép ngân sách của tháng [from] sang tháng [to]. */
+    suspend fun copyBudgets(from: YearMonth, to: YearMonth) {
+        db.budgetDao().getForMonth(from).forEach { db.budgetDao().upsert(it.copy(month = to)) }
+    }
 }

@@ -4,10 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.funmanager.data.Budget
 import com.funmanager.data.Category
 import com.funmanager.data.FinanceRepository
 import com.funmanager.data.Transaction
+import com.funmanager.domain.BudgetOverview
 import com.funmanager.domain.MonthlySummary
+import com.funmanager.domain.budgetOverview
 import com.funmanager.domain.summarize
 import com.funmanager.ui.container
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -26,6 +29,7 @@ data class HomeUiState(
     val month: YearMonth = YearMonth.now(),
     val summary: MonthlySummary = MonthlySummary.EMPTY,
     val days: Map<LocalDate, List<TransactionItem>> = emptyMap(),
+    val budget: BudgetOverview = BudgetOverview.EMPTY,
     val loading: Boolean = true,
 )
 
@@ -35,21 +39,32 @@ class HomeViewModel(
     private val selectedMonth: MutableStateFlow<YearMonth>,
 ) : ViewModel() {
 
-    val state: StateFlow<HomeUiState> = combine(
-        selectedMonth,
-        selectedMonth.flatMapLatest { repository.transactionsIn(it) },
-        repository.categories,
-    ) { month, transactions, categories ->
+    val state: StateFlow<HomeUiState> = selectedMonth.flatMapLatest { month ->
+        combine(
+            repository.transactionsIn(month),
+            repository.budgetsIn(month),
+            repository.categories,
+        ) { transactions, budgets, categories -> buildState(month, transactions, budgets, categories) }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
+
+    private fun buildState(
+        month: YearMonth,
+        transactions: List<Transaction>,
+        budgets: List<Budget>,
+        categories: List<Category>,
+    ): HomeUiState {
         val byId = categories.associateBy { it.id }
-        HomeUiState(
+        val summary = summarize(transactions, categories)
+        return HomeUiState(
             month = month,
-            summary = summarize(transactions, categories),
+            summary = summary,
+            budget = budgetOverview(summary, budgets, categories),
             days = transactions
                 .mapNotNull { t -> byId[t.categoryId]?.let { TransactionItem(t, it) } }
                 .groupBy { it.transaction.date },
             loading = false,
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
+    }
 
     fun onMonthChange(month: YearMonth) {
         selectedMonth.value = month

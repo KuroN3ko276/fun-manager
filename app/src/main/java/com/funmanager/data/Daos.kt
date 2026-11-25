@@ -34,6 +34,9 @@ interface BudgetDao {
     @Query("SELECT * FROM budgets WHERE month = :month")
     fun observeForMonth(month: YearMonth): Flow<List<Budget>>
 
+    @Query("SELECT * FROM budgets WHERE month = :month")
+    suspend fun getForMonth(month: YearMonth): List<Budget>
+
     @Upsert
     suspend fun upsert(budget: Budget)
 

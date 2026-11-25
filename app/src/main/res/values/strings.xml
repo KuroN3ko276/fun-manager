@@ -33,4 +33,19 @@
     <string name="change_up">▲ %1$d%% so với tháng trước</string>
     <string name="change_down">▼ %1$d%% so với tháng trước</string>
     <string name="change_same">Bằng tháng trước</string>
+
+    <string name="total_budget">Ngân sách tổng</string>
+    <string name="budget_by_category">Theo danh mục</string>
+    <string name="tap_to_set_budget">Chạm để đặt ngân sách cho tháng này</string>
+    <string name="spent_amount">Đã chi %1$s</string>
+    <string name="spent_no_budget">Đã chi %1$s · chưa đặt ngân sách</string>
+    <string name="budget_remaining">Còn lại %1$s</string>
+    <string name="budget_warning">Sắp hết! Chỉ còn %1$s</string>
+    <string name="budget_exceeded">Đã vượt %1$s</string>
+    <string name="monthly_limit">Hạn mức tháng</string>
+    <string name="limit_hint">Để trống để xoá ngân sách</string>
+    <string name="copy_previous_budgets">Dùng ngân sách của tháng trước</string>
+    <string name="alert_total_exceeded">Bạn đã vượt ngân sách tháng %1$s</string>
+    <string name="alert_total_warning">Bạn đã dùng %1$d%% ngân sách tháng</string>
+    <string name="alert_categories">Cần chú ý: %1$s</string>
 </resources>

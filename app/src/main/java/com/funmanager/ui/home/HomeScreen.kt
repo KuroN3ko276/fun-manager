@@ -16,7 +16,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -38,6 +40,9 @@ import com.funmanager.R
 import com.funmanager.data.Category
 import com.funmanager.data.Transaction
 import com.funmanager.data.TransactionType
+import com.funmanager.domain.BudgetLevel
+import com.funmanager.domain.BudgetOverview
+import com.funmanager.domain.formatVnd
 import com.funmanager.domain.summarize
 import com.funmanager.ui.components.CategoryIcon
 import com.funmanager.ui.components.MoneyText
@@ -46,17 +51,20 @@ import com.funmanager.ui.components.dayHeader
 import com.funmanager.ui.theme.ExpenseColor
 import com.funmanager.ui.theme.FunManagerTheme
 import com.funmanager.ui.theme.IncomeColor
+import com.funmanager.ui.theme.WarningColor
 import java.time.LocalDate
 import java.time.YearMonth
+import kotlin.math.roundToInt
 
 @Composable
 fun HomeRoute(
     onAdd: () -> Unit,
     onOpen: (Long) -> Unit,
+    onOpenBudget: () -> Unit,
     viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    HomeScreen(state, viewModel::onMonthChange, onAdd, onOpen)
+    HomeScreen(state, viewModel::onMonthChange, onAdd, onOpen, onOpenBudget)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,6 +74,7 @@ fun HomeScreen(
     onMonthChange: (YearMonth) -> Unit,
     onAdd: () -> Unit,
     onOpen: (Long) -> Unit,
+    onOpenBudget: () -> Unit,
 ) {
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.app_name)) }) },
@@ -83,6 +92,9 @@ fun HomeScreen(
         ) {
             item { MonthSelector(state.month, onMonthChange) }
             item { SummaryCard(state) }
+            if (state.budget.hasAlert) {
+                item { BudgetAlert(state.budget, onClick = onOpenBudget) }
+            }
             if (!state.loading && state.days.isEmpty()) {
                 item {
                     Box(Modifier.fillMaxWidth().padding(top = 48.dp), contentAlignment = Alignment.Center) {
@@ -118,6 +130,43 @@ private fun SummaryCard(state: HomeUiState) {
                 Column(Modifier.weight(1f)) {
                     Text(stringResource(R.string.expense), style = MaterialTheme.typography.labelMedium)
                     MoneyText(state.summary.expense, color = ExpenseColor)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BudgetAlert(budget: BudgetOverview, onClick: () -> Unit) {
+    val total = budget.total
+    val exceeded = total?.level == BudgetLevel.EXCEEDED || budget.alerts.any { it.progress?.level == BudgetLevel.EXCEEDED }
+    val tint = if (exceeded) ExpenseColor else WarningColor
+    Card(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(containerColor = tint.copy(alpha = 0.12f)),
+    ) {
+        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Filled.Warning, contentDescription = null, tint = tint)
+            Spacer(Modifier.width(12.dp))
+            Column {
+                when (total?.level) {
+                    BudgetLevel.EXCEEDED -> Text(
+                        stringResource(R.string.alert_total_exceeded, formatVnd(-total.remaining)),
+                        color = tint,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    BudgetLevel.WARNING -> Text(
+                        stringResource(R.string.alert_total_warning, (total.ratio * 100).roundToInt()),
+                        color = tint,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    else -> Unit
+                }
+                if (budget.alerts.isNotEmpty()) {
+                    Text(
+                        stringResource(R.string.alert_categories, budget.alerts.joinToString { it.category.name }),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
                 }
             }
         }
@@ -181,6 +230,7 @@ private fun HomeScreenPreview() {
             onMonthChange = {},
             onAdd = {},
             onOpen = {},
+            onOpenBudget = {},
         )
     }
 }

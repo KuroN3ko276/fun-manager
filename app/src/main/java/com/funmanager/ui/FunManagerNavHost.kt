@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -24,6 +25,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.funmanager.R
+import com.funmanager.ui.budget.BudgetRoute
 import com.funmanager.ui.edit.EditTransactionRoute
 import com.funmanager.ui.edit.EditTransactionViewModel
 import com.funmanager.ui.home.HomeRoute
@@ -32,6 +34,7 @@ import com.funmanager.ui.report.ReportRoute
 private enum class Tab(val route: String, @StringRes val label: Int, val icon: ImageVector) {
     Transactions("home", R.string.tab_transactions, Icons.AutoMirrored.Filled.ReceiptLong),
     Report("report", R.string.tab_report, Icons.Filled.PieChart),
+    Budget("budget", R.string.tab_budget, Icons.Filled.Savings),
 }
 
 private const val EDIT_ROUTE = "edit?${EditTransactionViewModel.ARG_ID}={${EditTransactionViewModel.ARG_ID}}"
@@ -72,9 +75,17 @@ fun FunManagerNavHost() {
                 HomeRoute(
                     onAdd = { navController.navigate(editRoute()) },
                     onOpen = { navController.navigate(editRoute(it)) },
+                    onOpenBudget = {
+                        navController.navigate(Tab.Budget.route) {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                 )
             }
             composable(Tab.Report.route) { ReportRoute() }
+            composable(Tab.Budget.route) { BudgetRoute() }
             composable(
                 EDIT_ROUTE,
                 arguments = listOf(
