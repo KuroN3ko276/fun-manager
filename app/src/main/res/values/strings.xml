@@ -208,4 +208,9 @@
     <string name="limit">Hạn mức</string>
     <string name="not_set">Chưa đặt</string>
     <string name="tap_to_set_limit">Chạm để đặt hạn mức cho danh mục này</string>
+
+    <string name="remaining">Còn lại</string>
+    <string name="over_by">Đã vượt</string>
+    <string name="total_near_warning">Sắp hết ngân sách tháng</string>
+    <string name="total_over_warning">Đã vượt ngân sách tháng</string>
 </resources>

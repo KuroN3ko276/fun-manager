@@ -1,6 +1,7 @@
 package com.funmanager.ui.budget
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,7 +10,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -21,6 +24,7 @@ import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -36,9 +40,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
@@ -63,12 +69,13 @@ import com.funmanager.domain.summarize
 import com.funmanager.ui.components.BudgetBar
 import com.funmanager.ui.components.CategoryIcon
 import com.funmanager.ui.components.GlassCard
-import com.funmanager.ui.components.IconBubble
+import com.funmanager.ui.components.HeroCard
 import com.funmanager.ui.components.MoneyText
 import com.funmanager.ui.components.MonthSelector
 import com.funmanager.ui.components.color
 import com.funmanager.ui.components.formatAmountInput
 import com.funmanager.ui.components.label
+import com.funmanager.ui.components.onAccentGradient
 import com.funmanager.ui.theme.FunManagerTheme
 import java.time.YearMonth
 import kotlin.math.roundToInt
@@ -134,17 +141,96 @@ fun BudgetScreen(
     }
 }
 
+/** Ngân sách tổng: thẻ nổi bật nền gradient, số còn lại cỡ lớn — tách biệt hẳn với thẻ danh mục. */
 @Composable
 private fun TotalBudgetCard(state: BudgetUiState, onClick: () -> Unit) {
-    BudgetCard(
-        icon = { IconBubble(Icons.Filled.AccountBalanceWallet, MaterialTheme.colorScheme.primary, size = 44.dp) },
-        title = stringResource(R.string.total_budget),
-        since = inheritedSince(state, Budget.TOTAL_CATEGORY_ID),
-        progress = state.overview.total,
-        spent = state.overview.totalSpent,
-        emptyHint = stringResource(R.string.tap_to_set_budget),
-        onClick = onClick,
-    )
+    val total = state.overview.total
+    val since = inheritedSince(state, Budget.TOTAL_CATEGORY_ID)
+    val on = onAccentGradient()
+    HeroCard(Modifier.clickable(onClick = onClick)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Filled.AccountBalanceWallet, contentDescription = null, tint = on, modifier = Modifier.size(22.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(
+                stringResource(R.string.total_budget),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = on,
+                modifier = Modifier.weight(1f),
+            )
+            if (total != null) {
+                Text(
+                    "${(total.ratio * 100).roundToInt()}%",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = on,
+                    modifier = Modifier
+                        .background(on.copy(alpha = 0.18f), RoundedCornerShape(50))
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                )
+            }
+        }
+        if (total == null) {
+            Text(
+                stringResource(R.string.spent_amount, formatVnd(state.overview.totalSpent)),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = on,
+            )
+            Text(stringResource(R.string.tap_to_set_budget), style = MaterialTheme.typography.bodyMedium, color = on.copy(alpha = 0.85f))
+            return@HeroCard
+        }
+        val exceeded = total.level == BudgetLevel.EXCEEDED
+        Text(
+            stringResource(if (exceeded) R.string.over_by else R.string.remaining),
+            style = MaterialTheme.typography.labelLarge,
+            color = on.copy(alpha = 0.85f),
+        )
+        Text(
+            formatVnd(if (exceeded) -total.remaining else total.remaining),
+            style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.Bold,
+            color = on,
+        )
+        LinearProgressIndicator(
+            progress = { total.ratio.coerceIn(0f, 1f) },
+            color = on,
+            trackColor = on.copy(alpha = 0.22f),
+            strokeCap = StrokeCap.Round,
+            gapSize = 0.dp,
+            drawStopIndicator = {},
+            modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(50)),
+        )
+        Row(Modifier.fillMaxWidth()) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.spent), style = MaterialTheme.typography.labelMedium, color = on.copy(alpha = 0.85f))
+                Text(formatVnd(total.spent), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = on)
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.End) {
+                Text(stringResource(R.string.limit), style = MaterialTheme.typography.labelMedium, color = on.copy(alpha = 0.85f))
+                Text(formatVnd(total.limit), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = on)
+            }
+        }
+        if (total.level != BudgetLevel.OK) {
+            // Cảnh báo nổi trên nền gradient: viên đặc màu cam/đỏ để không lẫn vào màu chủ đạo.
+            Text(
+                stringResource(if (exceeded) R.string.total_over_warning else R.string.total_near_warning),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White,
+                modifier = Modifier
+                    .background(if (exceeded) Color(0xFFC62828) else Color(0xFFB85C00), RoundedCornerShape(50))
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+            )
+        }
+        if (since != null) {
+            Text(
+                stringResource(R.string.budget_since, "%02d/%d".format(since.monthValue, since.year)),
+                style = MaterialTheme.typography.labelSmall,
+                color = on.copy(alpha = 0.75f),
+            )
+        }
+    }
 }
 
 /** Tháng bắt đầu áp dụng nếu hạn mức được kế thừa từ tháng trước; null nếu đặt ngay trong tháng đang xem. */
