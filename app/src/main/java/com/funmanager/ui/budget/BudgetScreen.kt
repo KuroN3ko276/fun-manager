@@ -1,6 +1,6 @@
 package com.funmanager.ui.budget
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,12 +9,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,8 +38,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
@@ -59,6 +63,7 @@ import com.funmanager.domain.summarize
 import com.funmanager.ui.components.BudgetBar
 import com.funmanager.ui.components.CategoryIcon
 import com.funmanager.ui.components.GlassCard
+import com.funmanager.ui.components.IconBubble
 import com.funmanager.ui.components.MoneyText
 import com.funmanager.ui.components.MonthSelector
 import com.funmanager.ui.components.color
@@ -66,6 +71,7 @@ import com.funmanager.ui.components.formatAmountInput
 import com.funmanager.ui.components.label
 import com.funmanager.ui.theme.FunManagerTheme
 import java.time.YearMonth
+import kotlin.math.roundToInt
 
 @Composable
 fun BudgetRoute(viewModel: BudgetViewModel = viewModel(factory = BudgetViewModel.Factory)) {
@@ -103,16 +109,8 @@ fun BudgetScreen(
             item {
                 Text(stringResource(R.string.budget_by_category), style = MaterialTheme.typography.titleSmall)
             }
-            if (state.overview.categories.isNotEmpty()) {
-                item {
-                    GlassCard(Modifier.fillMaxWidth()) {
-                        Column(Modifier.padding(horizontal = 14.dp, vertical = 6.dp)) {
-                            state.overview.categories.forEach { row ->
-                                CategoryBudgetRow(row, inheritedSince(state, row.category.id), onClick = { editing = row.category.id })
-                            }
-                        }
-                    }
-                }
+            items(state.overview.categories, key = { it.category.id }) { row ->
+                CategoryBudgetCard(row, inheritedSince(state, row.category.id), onClick = { editing = row.category.id })
             }
         }
     }
@@ -138,47 +136,15 @@ fun BudgetScreen(
 
 @Composable
 private fun TotalBudgetCard(state: BudgetUiState, onClick: () -> Unit) {
-    val total = state.overview.total
-    GlassCard(Modifier.fillMaxWidth(), onClick = onClick) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stringResource(R.string.total_budget), style = MaterialTheme.typography.labelLarge)
-            if (total == null) {
-                Text(stringResource(R.string.tap_to_set_budget), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(
-                    stringResource(R.string.spent_amount, formatVnd(state.overview.totalSpent)),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            } else {
-                ProgressDetails(total, large = true, since = inheritedSince(state, Budget.TOTAL_CATEGORY_ID))
-            }
-        }
-    }
-}
-
-@Composable
-private fun ProgressDetails(progress: BudgetProgress, large: Boolean = false, since: YearMonth? = null) {
-    Row(verticalAlignment = Alignment.Bottom) {
-        MoneyText(
-            progress.spent,
-            color = progress.level.color(),
-            style = if (large) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.bodyLarge,
-        )
-        Text(" / " + formatVnd(progress.limit), style = MaterialTheme.typography.bodyMedium)
-    }
-    BudgetBar(progress)
-    val message = when (progress.level) {
-        BudgetLevel.EXCEEDED -> stringResource(R.string.budget_exceeded, formatVnd(-progress.remaining))
-        BudgetLevel.WARNING -> stringResource(R.string.budget_warning, formatVnd(progress.remaining))
-        BudgetLevel.OK -> stringResource(R.string.budget_remaining, formatVnd(progress.remaining))
-    }
-    Text(message, style = MaterialTheme.typography.bodySmall, color = progress.level.color())
-    if (since != null) {
-        Text(
-            stringResource(R.string.budget_since, since.label()),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
+    BudgetCard(
+        icon = { IconBubble(Icons.Filled.AccountBalanceWallet, MaterialTheme.colorScheme.primary, size = 44.dp) },
+        title = stringResource(R.string.total_budget),
+        since = inheritedSince(state, Budget.TOTAL_CATEGORY_ID),
+        progress = state.overview.total,
+        spent = state.overview.totalSpent,
+        emptyHint = stringResource(R.string.tap_to_set_budget),
+        onClick = onClick,
+    )
 }
 
 /** Tháng bắt đầu áp dụng nếu hạn mức được kế thừa từ tháng trước; null nếu đặt ngay trong tháng đang xem. */
@@ -186,27 +152,87 @@ private fun inheritedSince(state: BudgetUiState, categoryId: Long): YearMonth? =
     state.since[categoryId]?.takeIf { it < state.month }
 
 @Composable
-private fun CategoryBudgetRow(row: CategoryBudget, since: YearMonth?, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        CategoryIcon(row.category)
-        Spacer(Modifier.width(12.dp))
-        Column(Modifier.weight(1f)) {
-            Text(row.category.name, style = MaterialTheme.typography.bodyLarge)
-            Spacer(Modifier.height(4.dp))
-            val progress = row.progress
+private fun CategoryBudgetCard(row: CategoryBudget, since: YearMonth?, onClick: () -> Unit) {
+    BudgetCard(
+        icon = { CategoryIcon(row.category, size = 44.dp) },
+        title = row.category.name,
+        since = since,
+        progress = row.progress,
+        spent = row.spent,
+        emptyHint = stringResource(R.string.tap_to_set_limit),
+        onClick = onClick,
+    )
+}
+
+/** Thẻ ngân sách: tiêu đề + % đã dùng, đã chi / hạn mức, thanh tiến độ, số còn lại (hoặc gợi ý đặt hạn mức). */
+@Composable
+private fun BudgetCard(
+    icon: @Composable () -> Unit,
+    title: String,
+    since: YearMonth?,
+    progress: BudgetProgress?,
+    spent: Long,
+    emptyHint: String,
+    onClick: () -> Unit,
+) {
+    GlassCard(Modifier.fillMaxWidth(), onClick = onClick) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                icon()
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    if (since != null) {
+                        Text(
+                            stringResource(R.string.budget_since, "%02d/%d".format(since.monthValue, since.year)),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                StatusPill(progress)
+            }
             if (progress == null) {
-                Text(
-                    stringResource(R.string.spent_no_budget, formatVnd(row.spent)),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                Text(stringResource(R.string.spent_amount, formatVnd(spent)), style = MaterialTheme.typography.bodyMedium)
+                Text(emptyHint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
-                ProgressDetails(progress, since = since)
+                Row(Modifier.fillMaxWidth()) {
+                    LabeledAmount(stringResource(R.string.spent), progress.spent, progress.level.color(), Modifier.weight(1f))
+                    LabeledAmount(stringResource(R.string.limit), progress.limit, MaterialTheme.colorScheme.onSurface, Modifier.weight(1f), end = true)
+                }
+                BudgetBar(progress)
+                val message = when (progress.level) {
+                    BudgetLevel.EXCEEDED -> stringResource(R.string.budget_exceeded, formatVnd(-progress.remaining))
+                    BudgetLevel.WARNING -> stringResource(R.string.budget_warning, formatVnd(progress.remaining))
+                    BudgetLevel.OK -> stringResource(R.string.budget_remaining, formatVnd(progress.remaining))
+                }
+                Text(message, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = progress.level.color())
             }
         }
+    }
+}
+
+/** Viên nhỏ góc phải: % đã dùng (màu theo mức) hoặc "Chưa đặt". */
+@Composable
+private fun StatusPill(progress: BudgetProgress?) {
+    val color = progress?.level?.color() ?: MaterialTheme.colorScheme.onSurfaceVariant
+    val text = progress?.let { "${(it.ratio * 100).roundToInt()}%" } ?: stringResource(R.string.not_set)
+    Text(
+        text,
+        style = MaterialTheme.typography.labelLarge,
+        fontWeight = FontWeight.Bold,
+        color = color,
+        modifier = Modifier
+            .background(color.copy(alpha = 0.14f), RoundedCornerShape(50))
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+    )
+}
+
+@Composable
+private fun LabeledAmount(label: String, amount: Long, color: Color, modifier: Modifier = Modifier, end: Boolean = false) {
+    Column(modifier, horizontalAlignment = if (end) Alignment.End else Alignment.Start) {
+        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        MoneyText(amount, color = color, style = MaterialTheme.typography.titleSmall)
     }
 }
 

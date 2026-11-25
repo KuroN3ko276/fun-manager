@@ -7,6 +7,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.funmanager.domain.BudgetLevel
@@ -30,6 +33,8 @@ fun BudgetBar(progress: BudgetProgress, modifier: Modifier = Modifier) {
         color = progress.level.color(),
         trackColor = MaterialTheme.colorScheme.surfaceVariant,
         drawStopIndicator = {},
-        modifier = modifier.fillMaxWidth().height(8.dp),
+        strokeCap = StrokeCap.Round,
+        gapSize = 0.dp,
+        modifier = modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(50)),
     )
 }

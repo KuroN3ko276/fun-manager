@@ -191,7 +191,7 @@
     <string name="widget_no_budget_short">chưa đặt ngân sách</string>
 
     <string name="budget_carry_over_note">Hạn mức đặt ở một tháng sẽ được giữ cho các tháng sau, cho tới khi bạn sửa. Số đã chi tính lại từ 0 mỗi tháng.</string>
-    <string name="budget_since">Áp dụng từ %1$s</string>
+    <string name="budget_since">Từ %1$s</string>
 
     <string name="upcoming_amount">Sắp tới: %1$s</string>
 
@@ -203,4 +203,9 @@
     <string name="balance_of_month">Số dư tháng</string>
 
     <string name="goal_of_target">trên mục tiêu %1$s</string>
+
+    <string name="spent">Đã chi</string>
+    <string name="limit">Hạn mức</string>
+    <string name="not_set">Chưa đặt</string>
+    <string name="tap_to_set_limit">Chạm để đặt hạn mức cho danh mục này</string>
 </resources>
