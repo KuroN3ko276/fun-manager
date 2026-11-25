@@ -21,6 +21,10 @@ class FinanceRepository(private val db: AppDatabase) {
     fun transactionsIn(month: YearMonth): Flow<List<Transaction>> =
         db.transactionDao().observeBetween(month.atDay(1), month.atEndOfMonth())
 
+    /** Giao dịch từ đầu tháng [from] đến hết tháng [to]. */
+    fun transactionsBetween(from: YearMonth, to: YearMonth): Flow<List<Transaction>> =
+        db.transactionDao().observeBetween(from.atDay(1), to.atEndOfMonth())
+
     suspend fun transaction(id: Long): Transaction? = db.transactionDao().getById(id)
 
     suspend fun save(transaction: Transaction) = db.transactionDao().upsert(transaction)

@@ -1,6 +1,12 @@
 package com.funmanager.ui.report
 
 import androidx.compose.foundation.background
+import com.funmanager.ui.components.IncomeExpenseBarChart
+import com.funmanager.domain.formatVnd
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.Card
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -79,6 +85,7 @@ fun ReportScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item { MonthSelector(state.month, onMonthChange) }
+            item { TrendCard(state, onMonthChange) }
             item {
                 val types = listOf(TransactionType.EXPENSE to R.string.expense, TransactionType.INCOME to R.string.income)
                 SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
@@ -117,6 +124,42 @@ fun ReportScreen(
             items(state.totals, key = { it.category.id }) { CategoryTotalRow(it) }
         }
     }
+}
+
+@Composable
+private fun TrendCard(state: ReportUiState, onSelect: (YearMonth) -> Unit) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    stringResource(R.string.trend_title, ReportViewModel.TREND_MONTHS),
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.weight(1f),
+                )
+                LegendDot(IncomeColor)
+                Text(stringResource(R.string.income), style = MaterialTheme.typography.labelSmall)
+                Spacer(Modifier.width(8.dp))
+                LegendDot(ExpenseColor)
+                Text(stringResource(R.string.expense), style = MaterialTheme.typography.labelSmall)
+            }
+            IncomeExpenseBarChart(state.trend, state.month, onSelect)
+            Text(
+                stringResource(R.string.average_expense, formatVnd(state.averageExpense)),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun LegendDot(color: Color) {
+    Box(
+        Modifier
+            .padding(end = 4.dp)
+            .size(8.dp)
+            .background(color, CircleShape),
+    )
 }
 
 @Composable

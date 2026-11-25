@@ -10,7 +10,7 @@
 ## Gợi ý cho các bản sau
 
 - [ ] **Giao dịch định kỳ** — tiền nhà, điện, nước, gói đăng ký tự động thêm mỗi tháng.
-- [ ] **Xu hướng nhiều tháng** — biểu đồ cột thu/chi 6–12 tháng gần nhất.
+- [x] **Xu hướng nhiều tháng** — biểu đồ cột thu/chi 6–12 tháng gần nhất.
 - [ ] **Tìm kiếm & lọc** — theo danh mục, ghi chú, khoảng tiền, khoảng ngày.
 - [x] **Danh mục tự tạo** — thêm/sửa/xoá danh mục với tên, màu, biểu tượng.
 - [ ] **Nhiều ví/tài khoản** — tiền mặt, ngân hàng, thẻ tín dụng; chuyển tiền giữa ví.

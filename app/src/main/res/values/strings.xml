@@ -61,4 +61,7 @@
     <string name="delete_category_title">Xoá \"%1$s\"?</string>
     <string name="delete_category_unused">Danh mục chưa có giao dịch nào.</string>
     <string name="delete_category_move">Có %1$d giao dịch thuộc danh mục này. Chuyển chúng sang:</string>
+
+    <string name="trend_title">Xu hướng %1$d tháng</string>
+    <string name="average_expense">Chi trung bình: %1$s / tháng</string>
 </resources>
