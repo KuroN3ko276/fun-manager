@@ -74,8 +74,7 @@
     <string name="recurring_empty">Chưa có giao dịch định kỳ nào</string>
     <string name="recurring_schedule">Ngày %1$d hằng tháng · lần tới %2$s</string>
     <string name="recurring_paused">Ngày %1$d hằng tháng · đang tạm dừng</string>
-    <string name="day_of_month">Ngày trong tháng</string>
-    <string name="day_n">Ngày %1$d</string>
+    <string name="day_of_month_selected">Ghi vào ngày %1$d hằng tháng</string>
     <string name="day_clamp_hint">Tháng không có ngày này sẽ dùng ngày cuối tháng.</string>
     <string name="recurring_note">Tên / ghi chú (ví dụ: Tiền nhà)</string>
     <string name="recurring_active">Đang bật</string>

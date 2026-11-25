@@ -13,13 +13,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,7 +35,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -48,6 +44,7 @@ import com.funmanager.data.DefaultCategories
 import com.funmanager.data.TransactionType
 import com.funmanager.ui.components.AmountField
 import com.funmanager.ui.components.CategoryPicker
+import com.funmanager.ui.components.DayOfMonthPicker
 import com.funmanager.ui.components.TypeSegmented
 import com.funmanager.ui.components.shortDate
 import com.funmanager.ui.theme.FunManagerTheme
@@ -123,20 +120,11 @@ fun EditRecurringScreen(
             AmountField(state.amountText, onAmountChange, state.amountError)
             CategoryPicker(state.categories, state.categoryId, onCategoryChange, state.categoryError)
 
-            Text(stringResource(R.string.day_of_month), style = MaterialTheme.typography.titleSmall)
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                FilledTonalIconButton(onClick = { onDayChange(state.dayOfMonth - 1) }, enabled = state.dayOfMonth > 1) {
-                    Icon(Icons.Filled.Remove, contentDescription = null)
-                }
-                Text(
-                    stringResource(R.string.day_n, state.dayOfMonth),
-                    style = MaterialTheme.typography.headlineSmall,
-                    textAlign = TextAlign.Center,
-                )
-                FilledTonalIconButton(onClick = { onDayChange(state.dayOfMonth + 1) }, enabled = state.dayOfMonth < 31) {
-                    Icon(Icons.Filled.Add, contentDescription = null)
-                }
-            }
+            Text(
+                stringResource(R.string.day_of_month_selected, state.dayOfMonth),
+                style = MaterialTheme.typography.titleSmall,
+            )
+            DayOfMonthPicker(state.dayOfMonth, onDayChange)
             if (state.dayOfMonth > 28) {
                 Text(
                     stringResource(R.string.day_clamp_hint),
