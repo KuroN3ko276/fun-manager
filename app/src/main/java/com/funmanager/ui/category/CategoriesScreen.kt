@@ -35,9 +35,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -61,6 +58,7 @@ import com.funmanager.ui.components.CATEGORY_COLORS
 import com.funmanager.ui.components.CATEGORY_ICONS
 import com.funmanager.ui.components.CategoryIcon
 import com.funmanager.ui.components.IconBubble
+import com.funmanager.ui.components.TypeSegmented
 import com.funmanager.ui.components.iconFor
 import com.funmanager.ui.theme.FunManagerTheme
 
@@ -128,7 +126,7 @@ fun CategoriesScreen(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 96.dp),
         ) {
             item {
-                TypeSelector(state.type, onTypeChange, Modifier.padding(vertical = 8.dp))
+                TypeSegmented(state.type, onTypeChange, Modifier.padding(vertical = 8.dp))
             }
             items(state.categories, key = { it.id }) { category ->
                 Row(
@@ -143,21 +141,6 @@ fun CategoriesScreen(
                     Text(category.name, style = MaterialTheme.typography.bodyLarge)
                 }
             }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TypeSelector(type: TransactionType, onChange: (TransactionType) -> Unit, modifier: Modifier = Modifier) {
-    val types = listOf(TransactionType.EXPENSE to R.string.expense, TransactionType.INCOME to R.string.income)
-    SingleChoiceSegmentedButtonRow(modifier.fillMaxWidth()) {
-        types.forEachIndexed { index, (value, label) ->
-            SegmentedButton(
-                selected = type == value,
-                onClick = { onChange(value) },
-                shape = SegmentedButtonDefaults.itemShape(index, types.size),
-            ) { Text(stringResource(label)) }
         }
     }
 }

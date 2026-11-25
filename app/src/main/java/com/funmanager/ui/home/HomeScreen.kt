@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -70,10 +72,11 @@ fun HomeRoute(
     onOpen: (Long) -> Unit,
     onOpenBudget: () -> Unit,
     onOpenCategories: () -> Unit,
+    onOpenRecurring: () -> Unit,
     viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    HomeScreen(state, viewModel::onMonthChange, onAdd, onOpen, onOpenBudget, onOpenCategories)
+    HomeScreen(state, viewModel::onMonthChange, onAdd, onOpen, onOpenBudget, onOpenCategories, onOpenRecurring)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -85,6 +88,7 @@ fun HomeScreen(
     onOpen: (Long) -> Unit,
     onOpenBudget: () -> Unit,
     onOpenCategories: () -> Unit,
+    onOpenRecurring: () -> Unit,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     Scaffold(
@@ -96,6 +100,14 @@ fun HomeScreen(
                         Icon(Icons.Filled.MoreVert, stringResource(R.string.more_options))
                     }
                     DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.menu_recurring)) },
+                            leadingIcon = { Icon(Icons.Filled.Repeat, contentDescription = null) },
+                            onClick = {
+                                menuOpen = false
+                                onOpenRecurring()
+                            },
+                        )
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.categories)) },
                             leadingIcon = { Icon(Icons.Filled.Category, contentDescription = null) },
@@ -223,7 +235,17 @@ private fun TransactionRow(item: TransactionItem, onClick: () -> Unit) {
         CategoryIcon(item.category)
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
-            Text(item.category.name, style = MaterialTheme.typography.bodyLarge)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(item.category.name, style = MaterialTheme.typography.bodyLarge)
+                if (item.transaction.recurringId != null) {
+                    Icon(
+                        Icons.Filled.Repeat,
+                        contentDescription = stringResource(R.string.recurring),
+                        modifier = Modifier.padding(start = 4.dp).size(14.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
             if (item.transaction.note.isNotBlank()) {
                 Text(
                     item.transaction.note,
@@ -262,6 +284,7 @@ private fun HomeScreenPreview() {
             onOpen = {},
             onOpenBudget = {},
             onOpenCategories = {},
+            onOpenRecurring = {},
         )
     }
 }

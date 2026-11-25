@@ -1,5 +1,6 @@
 package com.funmanager.data
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -40,6 +41,22 @@ data class Transaction(
     val categoryId: Long,
     val date: LocalDate,
     val note: String = "",
+    /** Id của [RecurringRule] đã tạo ra giao dịch này, null nếu nhập tay. */
+    @ColumnInfo(defaultValue = "NULL") val recurringId: Long? = null,
+)
+
+@Entity(tableName = "recurring_rules", indices = [Index("categoryId")])
+data class RecurringRule(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val amount: Long,
+    val type: TransactionType,
+    val categoryId: Long,
+    /** Ngày trong tháng (1..31); tháng ngắn hơn sẽ dùng ngày cuối tháng. */
+    val dayOfMonth: Int,
+    val note: String = "",
+    /** Tháng kế tiếp cần tạo giao dịch. */
+    val nextMonth: YearMonth,
+    val active: Boolean = true,
 )
 
 @Entity(tableName = "budgets", primaryKeys = ["month", "categoryId"])

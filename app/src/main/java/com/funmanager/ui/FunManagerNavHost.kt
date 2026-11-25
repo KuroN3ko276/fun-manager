@@ -30,6 +30,9 @@ import com.funmanager.ui.category.CategoriesRoute
 import com.funmanager.ui.edit.EditTransactionRoute
 import com.funmanager.ui.edit.EditTransactionViewModel
 import com.funmanager.ui.home.HomeRoute
+import com.funmanager.ui.recurring.EditRecurringRoute
+import com.funmanager.ui.recurring.EditRecurringViewModel
+import com.funmanager.ui.recurring.RecurringListRoute
 import com.funmanager.ui.report.ReportRoute
 
 private enum class Tab(val route: String, @StringRes val label: Int, val icon: ImageVector) {
@@ -41,6 +44,12 @@ private enum class Tab(val route: String, @StringRes val label: Int, val icon: I
 private const val EDIT_ROUTE = "edit?${EditTransactionViewModel.ARG_ID}={${EditTransactionViewModel.ARG_ID}}"
 
 private const val CATEGORIES_ROUTE = "categories"
+private const val RECURRING_ROUTE = "recurring"
+private const val RECURRING_EDIT_ROUTE =
+    "recurring/edit?${EditRecurringViewModel.ARG_ID}={${EditRecurringViewModel.ARG_ID}}"
+
+private fun recurringEditRoute(id: Long = EditRecurringViewModel.NEW_ID) =
+    "recurring/edit?${EditRecurringViewModel.ARG_ID}=$id"
 
 private fun editRoute(id: Long = EditTransactionViewModel.NEW_ID) = "edit?${EditTransactionViewModel.ARG_ID}=$id"
 
@@ -86,7 +95,26 @@ fun FunManagerNavHost() {
                         }
                     },
                     onOpenCategories = { navController.navigate(CATEGORIES_ROUTE) },
+                    onOpenRecurring = { navController.navigate(RECURRING_ROUTE) },
                 )
+            }
+            composable(RECURRING_ROUTE) {
+                RecurringListRoute(
+                    onBack = { navController.popBackStack() },
+                    onAdd = { navController.navigate(recurringEditRoute()) },
+                    onOpen = { navController.navigate(recurringEditRoute(it)) },
+                )
+            }
+            composable(
+                RECURRING_EDIT_ROUTE,
+                arguments = listOf(
+                    navArgument(EditRecurringViewModel.ARG_ID) {
+                        type = NavType.LongType
+                        defaultValue = EditRecurringViewModel.NEW_ID
+                    },
+                ),
+            ) {
+                EditRecurringRoute(onDone = { navController.popBackStack() })
             }
             composable(CATEGORIES_ROUTE) { CategoriesRoute(onBack = { navController.popBackStack() }) }
             composable(Tab.Report.route) { ReportRoute() }

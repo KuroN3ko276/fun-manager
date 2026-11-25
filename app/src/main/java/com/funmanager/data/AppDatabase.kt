@@ -1,6 +1,7 @@
 package com.funmanager.data
 
 import android.content.Context
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -8,15 +9,17 @@ import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
-    entities = [Category::class, Transaction::class, Budget::class],
-    version = 1,
+    entities = [Category::class, Transaction::class, Budget::class, RecurringRule::class],
+    version = 2,
     exportSchema = true,
+    autoMigrations = [AutoMigration(from = 1, to = 2)],
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun categoryDao(): CategoryDao
     abstract fun transactionDao(): TransactionDao
     abstract fun budgetDao(): BudgetDao
+    abstract fun recurringDao(): RecurringDao
 
     companion object {
         fun build(context: Context): AppDatabase =

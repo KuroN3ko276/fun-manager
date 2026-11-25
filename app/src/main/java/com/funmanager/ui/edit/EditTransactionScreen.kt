@@ -2,8 +2,6 @@ package com.funmanager.ui.edit
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,7 +10,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -23,16 +20,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -46,7 +39,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -54,7 +46,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.funmanager.R
 import com.funmanager.data.DefaultCategories
 import com.funmanager.data.TransactionType
-import com.funmanager.ui.components.CategoryIcon
+import com.funmanager.ui.components.AmountField
+import com.funmanager.ui.components.CategoryPicker
+import com.funmanager.ui.components.TypeSegmented
 import com.funmanager.ui.components.shortDate
 import com.funmanager.ui.theme.FunManagerTheme
 import java.time.Instant
@@ -81,7 +75,7 @@ fun EditTransactionRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditTransactionScreen(
     state: EditUiState,
@@ -129,52 +123,9 @@ fun EditTransactionScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            val types = listOf(TransactionType.EXPENSE to R.string.expense, TransactionType.INCOME to R.string.income)
-            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                types.forEachIndexed { index, (type, label) ->
-                    SegmentedButton(
-                        selected = state.type == type,
-                        onClick = { onTypeChange(type) },
-                        shape = SegmentedButtonDefaults.itemShape(index, types.size),
-                    ) { Text(stringResource(label)) }
-                }
-            }
-
-            OutlinedTextField(
-                value = state.amountText,
-                onValueChange = onAmountChange,
-                label = { Text(stringResource(R.string.amount)) },
-                suffix = { Text("₫") },
-                isError = state.amountError,
-                supportingText = if (state.amountError) {
-                    { Text(stringResource(R.string.amount_error)) }
-                } else {
-                    null
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                textStyle = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            Text(stringResource(R.string.category), style = MaterialTheme.typography.titleSmall)
-            if (state.categoryError) {
-                Text(
-                    stringResource(R.string.category_error),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                state.categories.forEach { category ->
-                    FilterChip(
-                        selected = state.categoryId == category.id,
-                        onClick = { onCategoryChange(category.id) },
-                        label = { Text(category.name) },
-                        leadingIcon = { CategoryIcon(category, size = 20.dp) },
-                    )
-                }
-            }
+            TypeSegmented(state.type, onTypeChange)
+            AmountField(state.amountText, onAmountChange, state.amountError)
+            CategoryPicker(state.categories, state.categoryId, onCategoryChange, state.categoryError)
 
             OutlinedButton(onClick = { showDatePicker = true }, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Filled.CalendarMonth, contentDescription = null, modifier = Modifier.size(18.dp))

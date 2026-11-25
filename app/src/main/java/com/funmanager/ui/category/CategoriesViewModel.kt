@@ -110,7 +110,7 @@ class CategoriesViewModel(private val repository: FinanceRepository) : ViewModel
     fun requestDelete() {
         val category = ui.value.editor?.original ?: return
         viewModelScope.launch {
-            val usage = repository.transactionCount(category.id)
+            val usage = repository.categoryUsage(category.id)
             val replacements = state.value.all.filter { it.type == category.type && it.id != category.id }
             ui.update {
                 it.copy(

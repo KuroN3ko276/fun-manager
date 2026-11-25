@@ -12,6 +12,7 @@ import com.funmanager.data.Transaction
 import com.funmanager.data.TransactionType
 import com.funmanager.domain.groupDigits
 import com.funmanager.domain.parseVnd
+import com.funmanager.ui.components.formatAmountInput
 import com.funmanager.ui.container
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -87,10 +88,7 @@ class EditTransactionViewModel(
         }
     }
 
-    fun onAmountChange(text: String) = _state.update {
-        val digits = text.filter(Char::isDigit).trimStart('0').take(MAX_DIGITS)
-        it.copy(amountText = if (digits.isEmpty()) "" else groupDigits(digits))
-    }
+    fun onAmountChange(text: String) = _state.update { it.copy(amountText = formatAmountInput(text)) }
 
     fun onCategoryChange(id: Long) = _state.update { it.copy(categoryId = id) }
 
@@ -132,7 +130,6 @@ class EditTransactionViewModel(
     companion object {
         const val ARG_ID = "id"
         const val NEW_ID = -1L
-        private const val MAX_DIGITS = 13
 
         private fun defaultDate(month: YearMonth): LocalDate {
             val today = LocalDate.now()
