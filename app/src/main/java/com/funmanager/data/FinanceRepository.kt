@@ -1,10 +1,22 @@
 package com.funmanager.data
 
+import androidx.room.withTransaction
 import kotlinx.coroutines.flow.Flow
 import java.time.YearMonth
 
 class FinanceRepository(private val db: AppDatabase) {
     val categories: Flow<List<Category>> = db.categoryDao().observeAll()
+
+    suspend fun saveCategory(category: Category) = db.categoryDao().upsert(category)
+
+    suspend fun transactionCount(categoryId: Long): Int = db.transactionDao().countForCategory(categoryId)
+
+    /** Xoá danh mục; giao dịch đang dùng nó được chuyển sang [replacementId], ngân sách của nó bị xoá. */
+    suspend fun deleteCategory(categoryId: Long, replacementId: Long?) = db.withTransaction {
+        if (replacementId != null) db.transactionDao().moveCategory(categoryId, replacementId)
+        db.budgetDao().deleteForCategory(categoryId)
+        db.categoryDao().delete(categoryId)
+    }
 
     fun transactionsIn(month: YearMonth): Flow<List<Transaction>> =
         db.transactionDao().observeBetween(month.atDay(1), month.atEndOfMonth())

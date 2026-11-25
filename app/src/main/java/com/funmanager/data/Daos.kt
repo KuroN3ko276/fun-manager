@@ -12,6 +12,12 @@ import java.time.YearMonth
 interface CategoryDao {
     @Query("SELECT * FROM categories ORDER BY type, id")
     fun observeAll(): Flow<List<Category>>
+
+    @Upsert
+    suspend fun upsert(category: Category)
+
+    @Query("DELETE FROM categories WHERE id = :id")
+    suspend fun delete(id: Long)
 }
 
 @Dao
@@ -27,6 +33,12 @@ interface TransactionDao {
 
     @Delete
     suspend fun delete(transaction: Transaction)
+
+    @Query("SELECT COUNT(*) FROM transactions WHERE categoryId = :categoryId")
+    suspend fun countForCategory(categoryId: Long): Int
+
+    @Query("UPDATE transactions SET categoryId = :to WHERE categoryId = :from")
+    suspend fun moveCategory(from: Long, to: Long)
 }
 
 @Dao
@@ -42,4 +54,7 @@ interface BudgetDao {
 
     @Query("DELETE FROM budgets WHERE month = :month AND categoryId = :categoryId")
     suspend fun delete(month: YearMonth, categoryId: Long)
+
+    @Query("DELETE FROM budgets WHERE categoryId = :categoryId")
+    suspend fun deleteForCategory(categoryId: Long)
 }

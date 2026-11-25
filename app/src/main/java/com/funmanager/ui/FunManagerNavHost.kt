@@ -26,6 +26,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.funmanager.R
 import com.funmanager.ui.budget.BudgetRoute
+import com.funmanager.ui.category.CategoriesRoute
 import com.funmanager.ui.edit.EditTransactionRoute
 import com.funmanager.ui.edit.EditTransactionViewModel
 import com.funmanager.ui.home.HomeRoute
@@ -38,6 +39,8 @@ private enum class Tab(val route: String, @StringRes val label: Int, val icon: I
 }
 
 private const val EDIT_ROUTE = "edit?${EditTransactionViewModel.ARG_ID}={${EditTransactionViewModel.ARG_ID}}"
+
+private const val CATEGORIES_ROUTE = "categories"
 
 private fun editRoute(id: Long = EditTransactionViewModel.NEW_ID) = "edit?${EditTransactionViewModel.ARG_ID}=$id"
 
@@ -82,8 +85,10 @@ fun FunManagerNavHost() {
                             restoreState = true
                         }
                     },
+                    onOpenCategories = { navController.navigate(CATEGORIES_ROUTE) },
                 )
             }
+            composable(CATEGORIES_ROUTE) { CategoriesRoute(onBack = { navController.popBackStack() }) }
             composable(Tab.Report.route) { ReportRoute() }
             composable(Tab.Budget.route) { BudgetRoute() }
             composable(
