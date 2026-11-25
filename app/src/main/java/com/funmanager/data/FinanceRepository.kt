@@ -137,7 +137,7 @@ class FinanceRepository(private val db: AppDatabase) {
 
     val wallets: Flow<List<Wallet>> = db.walletDao().observeAll()
 
-    val walletNets: Flow<List<WalletNet>> = db.walletDao().observeNets()
+    fun walletNets(today: LocalDate): Flow<List<WalletNet>> = db.walletDao().observeNets(today)
 
     val transfers: Flow<List<Transfer>> = db.walletDao().observeTransfers()
 

@@ -192,4 +192,6 @@
 
     <string name="budget_carry_over_note">Hạn mức đặt ở một tháng sẽ được giữ cho các tháng sau, cho tới khi bạn sửa. Số đã chi tính lại từ 0 mỗi tháng.</string>
     <string name="budget_since">Áp dụng từ %1$s</string>
+
+    <string name="upcoming_amount">Sắp tới: %1$s</string>
 </resources>

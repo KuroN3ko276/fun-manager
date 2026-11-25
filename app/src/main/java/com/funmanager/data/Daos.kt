@@ -159,13 +159,16 @@ interface WalletDao {
     @Query("DELETE FROM wallets WHERE id = :id")
     suspend fun delete(id: Long)
 
+    /** Thu − chi của từng ví: [WalletNet.net] tính tới hết ngày [today], [WalletNet.upcoming] là các ngày sau đó. */
     @Query(
         """
-        SELECT walletId, SUM(CASE WHEN type = 'INCOME' THEN amount ELSE -amount END) AS net
+        SELECT walletId,
+            SUM(CASE WHEN date <= :today THEN (CASE WHEN type = 'INCOME' THEN amount ELSE -amount END) ELSE 0 END) AS net,
+            SUM(CASE WHEN date > :today THEN (CASE WHEN type = 'INCOME' THEN amount ELSE -amount END) ELSE 0 END) AS upcoming
         FROM transactions GROUP BY walletId
         """,
     )
-    fun observeNets(): Flow<List<WalletNet>>
+    fun observeNets(today: LocalDate): Flow<List<WalletNet>>
 
     @Query("SELECT * FROM transfers ORDER BY date DESC, id DESC")
     fun observeTransfers(): Flow<List<Transfer>>

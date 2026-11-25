@@ -10,6 +10,7 @@ import com.funmanager.data.Wallet
 import com.funmanager.domain.TransferError
 import com.funmanager.domain.groupDigits
 import com.funmanager.domain.parseVnd
+import com.funmanager.domain.upcomingByWallet
 import com.funmanager.domain.validateTransfer
 import com.funmanager.domain.walletBalances
 import com.funmanager.ui.components.CATEGORY_COLORS
@@ -25,7 +26,8 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import kotlin.math.abs
 
-data class WalletWithBalance(val wallet: Wallet, val balance: Long)
+/** [upcoming]: thu − chi đã ghi cho các ngày sau hôm nay, chưa tính vào [balance]. */
+data class WalletWithBalance(val wallet: Wallet, val balance: Long, val upcoming: Long = 0)
 
 data class WalletEditor(
     val original: Wallet?,
@@ -65,6 +67,7 @@ data class WalletsUiState(
     val pendingTransferDelete: TransferItem? = null,
 ) {
     val total: Long get() = wallets.sumOf { it.balance }
+    val totalUpcoming: Long get() = wallets.sumOf { it.upcoming }
 }
 
 private data class Ui(
@@ -78,16 +81,20 @@ class WalletsViewModel(private val repository: FinanceRepository) : ViewModel() 
 
     private val ui = MutableStateFlow(Ui())
 
+    /** Mốc "hôm nay" để tách giao dịch đã diễn ra và giao dịch ghi trước cho ngày sau. */
+    private val today: LocalDate = LocalDate.now()
+
     val state: StateFlow<WalletsUiState> = combine(
         ui,
         repository.wallets,
-        repository.walletNets,
+        repository.walletNets(today),
         repository.transfers,
     ) { ui, wallets, nets, transfers ->
-        val balances = walletBalances(wallets, nets, transfers)
+        val balances = walletBalances(wallets, nets, transfers, today)
+        val upcoming = upcomingByWallet(nets)
         val byId = wallets.associateBy { it.id }
         WalletsUiState(
-            wallets = wallets.map { WalletWithBalance(it, balances[it.id] ?: 0) },
+            wallets = wallets.map { WalletWithBalance(it, balances[it.id] ?: 0, upcoming[it.id] ?: 0) },
             transfers = transfers.map { TransferItem(it, byId[it.fromWalletId], byId[it.toWalletId]) },
             editor = ui.editor,
             deleteRequest = ui.deleteRequest,

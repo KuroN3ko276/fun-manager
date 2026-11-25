@@ -70,6 +70,7 @@ import com.funmanager.ui.components.shortDate
 import com.funmanager.ui.theme.ExpenseColor
 import com.funmanager.ui.theme.FunManagerTheme
 import java.time.LocalDate
+import kotlin.math.abs
 
 @Composable
 fun WalletsRoute(onBack: () -> Unit, viewModel: WalletsViewModel = viewModel(factory = WalletsViewModel.Factory)) {
@@ -158,6 +159,7 @@ fun WalletsScreen(
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(stringResource(R.string.total_assets), style = MaterialTheme.typography.labelLarge)
                         MoneyText(state.total, style = MaterialTheme.typography.headlineMedium)
+                        UpcomingText(state.totalUpcoming)
                         if (state.wallets.size > 1) {
                             FilledTonalButton(onClick = onTransfer) {
                                 Icon(Icons.Filled.SwapHoriz, contentDescription = null)
@@ -176,7 +178,10 @@ fun WalletsScreen(
                     IconBubble(iconFor(item.wallet.icon), Color(item.wallet.color))
                     Spacer(Modifier.width(12.dp))
                     Text(item.wallet.name, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-                    MoneyText(item.balance, color = if (item.balance < 0) ExpenseColor else Color.Unspecified)
+                    Column(horizontalAlignment = Alignment.End) {
+                        MoneyText(item.balance, color = if (item.balance < 0) ExpenseColor else Color.Unspecified)
+                        UpcomingText(item.upcoming)
+                    }
                 }
             }
             if (state.transfers.isNotEmpty()) {
@@ -215,6 +220,18 @@ fun WalletsScreen(
             }
         }
     }
+}
+
+/** "Sắp tới: +X ₫" cho các khoản ghi ngày sau hôm nay (chưa tính vào số dư). */
+@Composable
+private fun UpcomingText(amount: Long) {
+    if (amount == 0L) return
+    val sign = if (amount > 0) "+" else "−"
+    Text(
+        stringResource(R.string.upcoming_amount, sign + formatVnd(abs(amount))),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)

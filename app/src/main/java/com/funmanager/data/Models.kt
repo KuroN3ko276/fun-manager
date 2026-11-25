@@ -140,8 +140,8 @@ data class Transfer(
     val note: String = "",
 )
 
-/** Tổng thu − chi của một ví. */
-data class WalletNet(val walletId: Long, val net: Long)
+/** Tổng thu − chi của một ví: tới hôm nay ([net]) và các giao dịch ghi ngày tương lai ([upcoming]). */
+data class WalletNet(val walletId: Long, val net: Long, val upcoming: Long = 0)
 
 /** Tổng tiền theo danh mục (kết quả truy vấn gộp). */
 data class CategorySum(val categoryId: Long, val total: Long)
