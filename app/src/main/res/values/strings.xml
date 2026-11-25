@@ -83,4 +83,29 @@
     <string name="menu_recurring">Giao dịch định kỳ</string>
     <string name="delete_recurring_title">Xoá giao dịch định kỳ?</string>
     <string name="delete_recurring_message">Các giao dịch đã được tạo trước đó vẫn được giữ lại.</string>
+
+    <string name="tab_savings">Tiết kiệm</string>
+    <string name="total_saved">Tổng đã để dành</string>
+    <string name="of_total_target">trên tổng mục tiêu %1$s</string>
+    <string name="goals_empty">Chưa có mục tiêu nào. Bấm ＋ để tạo mục tiêu đầu tiên.</string>
+    <string name="add_goal">Thêm mục tiêu</string>
+    <string name="edit_goal">Sửa mục tiêu</string>
+    <string name="goal_name">Tên mục tiêu</string>
+    <string name="goal_target">Số tiền mục tiêu</string>
+    <string name="goal_deadline">Hạn hoàn thành</string>
+    <string name="no_deadline">Không đặt hạn</string>
+    <string name="clear_deadline">Bỏ hạn</string>
+    <string name="goal_reached">🎉 Đã đạt mục tiêu!</string>
+    <string name="goal_remaining">Còn thiếu %1$s</string>
+    <string name="goal_monthly_needed">Cần để dành %1$s / tháng để kịp %2$s</string>
+    <string name="goal_overdue">Đã quá hạn %1$s · còn thiếu %2$s</string>
+    <string name="deposit">Nạp tiền</string>
+    <string name="withdraw">Rút tiền</string>
+    <string name="withdraw_too_much">Chỉ có thể rút tối đa %1$s</string>
+    <string name="history">Lịch sử</string>
+    <string name="history_empty">Chưa nạp lần nào</string>
+    <string name="delete_deposit_title">Xoá lần nạp/rút này?</string>
+    <string name="delete_deposit_message">%1$s ngày %2$s</string>
+    <string name="delete_goal_title">Xoá mục tiêu?</string>
+    <string name="delete_goal_message">Mục tiêu và toàn bộ lịch sử nạp/rút sẽ bị xoá.</string>
 </resources>

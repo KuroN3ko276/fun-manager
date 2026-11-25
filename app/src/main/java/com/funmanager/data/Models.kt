@@ -1,6 +1,7 @@
 package com.funmanager.data
 
 import androidx.room.ColumnInfo
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -70,3 +71,42 @@ data class Budget(
         const val TOTAL_CATEGORY_ID = 0L
     }
 }
+
+@Entity(tableName = "savings_goals")
+data class SavingsGoal(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val name: String,
+    /** Số tiền mục tiêu (VNĐ). */
+    val target: Long,
+    val icon: String,
+    val color: Long,
+    /** Hạn hoàn thành, null nếu không đặt hạn. */
+    val deadline: LocalDate? = null,
+)
+
+@Entity(
+    tableName = "savings_deposits",
+    foreignKeys = [
+        ForeignKey(
+            entity = SavingsGoal::class,
+            parentColumns = ["id"],
+            childColumns = ["goalId"],
+            onDelete = ForeignKey.CASCADE,
+        ),
+    ],
+    indices = [Index("goalId")],
+)
+data class SavingsDeposit(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val goalId: Long,
+    /** Dương = nạp vào, âm = rút ra. */
+    val amount: Long,
+    val date: LocalDate,
+    val note: String = "",
+)
+
+/** Mục tiêu kèm tổng số đã để dành. */
+data class GoalWithSaved(
+    @Embedded val goal: SavingsGoal,
+    val saved: Long,
+)

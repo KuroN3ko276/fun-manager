@@ -86,3 +86,40 @@ interface RecurringDao {
     @Query("SELECT COUNT(*) FROM recurring_rules WHERE categoryId = :categoryId")
     suspend fun countForCategory(categoryId: Long): Int
 }
+
+@Dao
+interface SavingsDao {
+    @Query(
+        """
+        SELECT g.*, COALESCE((SELECT SUM(d.amount) FROM savings_deposits d WHERE d.goalId = g.id), 0) AS saved
+        FROM savings_goals g ORDER BY g.id
+        """,
+    )
+    fun observeGoals(): Flow<List<GoalWithSaved>>
+
+    @Query(
+        """
+        SELECT g.*, COALESCE((SELECT SUM(d.amount) FROM savings_deposits d WHERE d.goalId = g.id), 0) AS saved
+        FROM savings_goals g WHERE g.id = :id
+        """,
+    )
+    fun observeGoal(id: Long): Flow<GoalWithSaved?>
+
+    @Query("SELECT * FROM savings_goals WHERE id = :id")
+    suspend fun getGoal(id: Long): SavingsGoal?
+
+    @Upsert
+    suspend fun upsertGoal(goal: SavingsGoal)
+
+    @Query("DELETE FROM savings_goals WHERE id = :id")
+    suspend fun deleteGoal(id: Long)
+
+    @Query("SELECT * FROM savings_deposits WHERE goalId = :goalId ORDER BY date DESC, id DESC")
+    fun observeDeposits(goalId: Long): Flow<List<SavingsDeposit>>
+
+    @Insert
+    suspend fun insertDeposit(deposit: SavingsDeposit)
+
+    @Query("DELETE FROM savings_deposits WHERE id = :id")
+    suspend fun deleteDeposit(id: Long)
+}

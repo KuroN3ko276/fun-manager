@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material3.Icon
@@ -34,11 +35,17 @@ import com.funmanager.ui.recurring.EditRecurringRoute
 import com.funmanager.ui.recurring.EditRecurringViewModel
 import com.funmanager.ui.recurring.RecurringListRoute
 import com.funmanager.ui.report.ReportRoute
+import com.funmanager.ui.savings.EditGoalRoute
+import com.funmanager.ui.savings.EditGoalViewModel
+import com.funmanager.ui.savings.GoalDetailRoute
+import com.funmanager.ui.savings.GoalDetailViewModel
+import com.funmanager.ui.savings.SavingsRoute
 
 private enum class Tab(val route: String, @StringRes val label: Int, val icon: ImageVector) {
     Transactions("home", R.string.tab_transactions, Icons.AutoMirrored.Filled.ReceiptLong),
     Report("report", R.string.tab_report, Icons.Filled.PieChart),
-    Budget("budget", R.string.tab_budget, Icons.Filled.Savings),
+    Budget("budget", R.string.tab_budget, Icons.Filled.AccountBalanceWallet),
+    Savings("savings", R.string.tab_savings, Icons.Filled.Savings),
 }
 
 private const val EDIT_ROUTE = "edit?${EditTransactionViewModel.ARG_ID}={${EditTransactionViewModel.ARG_ID}}"
@@ -47,6 +54,12 @@ private const val CATEGORIES_ROUTE = "categories"
 private const val RECURRING_ROUTE = "recurring"
 private const val RECURRING_EDIT_ROUTE =
     "recurring/edit?${EditRecurringViewModel.ARG_ID}={${EditRecurringViewModel.ARG_ID}}"
+
+private const val GOAL_ROUTE_PREFIX = "savings/goal"
+private const val GOAL_DETAIL_ROUTE = "$GOAL_ROUTE_PREFIX/{${GoalDetailViewModel.ARG_ID}}"
+private const val GOAL_EDIT_ROUTE = "savings/edit?${EditGoalViewModel.ARG_ID}={${EditGoalViewModel.ARG_ID}}"
+
+private fun goalEditRoute(id: Long = EditGoalViewModel.NEW_ID) = "savings/edit?${EditGoalViewModel.ARG_ID}=$id"
 
 private fun recurringEditRoute(id: Long = EditRecurringViewModel.NEW_ID) =
     "recurring/edit?${EditRecurringViewModel.ARG_ID}=$id"
@@ -119,6 +132,35 @@ fun FunManagerNavHost() {
             composable(CATEGORIES_ROUTE) { CategoriesRoute(onBack = { navController.popBackStack() }) }
             composable(Tab.Report.route) { ReportRoute() }
             composable(Tab.Budget.route) { BudgetRoute() }
+            composable(Tab.Savings.route) {
+                SavingsRoute(
+                    onAdd = { navController.navigate(goalEditRoute()) },
+                    onOpen = { navController.navigate("$GOAL_ROUTE_PREFIX/$it") },
+                )
+            }
+            composable(
+                GOAL_DETAIL_ROUTE,
+                arguments = listOf(navArgument(GoalDetailViewModel.ARG_ID) { type = NavType.LongType }),
+            ) {
+                GoalDetailRoute(
+                    onBack = { navController.popBackStack() },
+                    onEdit = { navController.navigate(goalEditRoute(it)) },
+                )
+            }
+            composable(
+                GOAL_EDIT_ROUTE,
+                arguments = listOf(
+                    navArgument(EditGoalViewModel.ARG_ID) {
+                        type = NavType.LongType
+                        defaultValue = EditGoalViewModel.NEW_ID
+                    },
+                ),
+            ) {
+                EditGoalRoute(
+                    onSaved = { navController.popBackStack() },
+                    onDeleted = { navController.popBackStack(Tab.Savings.route, inclusive = false) },
+                )
+            }
             composable(
                 EDIT_ROUTE,
                 arguments = listOf(

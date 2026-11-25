@@ -18,4 +18,4 @@
 - [ ] **Nhắc nhở hằng ngày** — notification nhắc ghi chi tiêu buổi tối.
 - [ ] **Widget màn hình chính** — xem nhanh số đã chi / còn lại trong tháng.
 - [ ] **Khoá app** — vân tay hoặc PIN.
-- [ ] **Mục tiêu tiết kiệm** — đặt mục tiêu và theo dõi tiến độ.
+- [x] **Mục tiêu tiết kiệm** — đặt mục tiêu và theo dõi tiến độ.

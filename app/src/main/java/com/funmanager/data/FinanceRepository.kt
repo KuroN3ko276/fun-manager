@@ -95,4 +95,21 @@ class FinanceRepository(private val db: AppDatabase) {
             created
         }
     }
+
+    val savingsGoals: Flow<List<GoalWithSaved>> = db.savingsDao().observeGoals()
+
+    fun savingsGoal(id: Long): Flow<GoalWithSaved?> = db.savingsDao().observeGoal(id)
+
+    suspend fun getSavingsGoal(id: Long): SavingsGoal? = db.savingsDao().getGoal(id)
+
+    suspend fun saveSavingsGoal(goal: SavingsGoal) = db.savingsDao().upsertGoal(goal)
+
+    /** Xoá mục tiêu cùng toàn bộ lịch sử nạp/rút. */
+    suspend fun deleteSavingsGoal(id: Long) = db.savingsDao().deleteGoal(id)
+
+    fun savingsDeposits(goalId: Long): Flow<List<SavingsDeposit>> = db.savingsDao().observeDeposits(goalId)
+
+    suspend fun addSavingsDeposit(deposit: SavingsDeposit) = db.savingsDao().insertDeposit(deposit)
+
+    suspend fun deleteSavingsDeposit(id: Long) = db.savingsDao().deleteDeposit(id)
 }

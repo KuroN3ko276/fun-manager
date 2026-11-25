@@ -9,10 +9,20 @@ import androidx.room.TypeConverters
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
-    entities = [Category::class, Transaction::class, Budget::class, RecurringRule::class],
-    version = 2,
+    entities = [
+        Category::class,
+        Transaction::class,
+        Budget::class,
+        RecurringRule::class,
+        SavingsGoal::class,
+        SavingsDeposit::class,
+    ],
+    version = 3,
     exportSchema = true,
-    autoMigrations = [AutoMigration(from = 1, to = 2)],
+    autoMigrations = [
+        AutoMigration(from = 1, to = 2),
+        AutoMigration(from = 2, to = 3),
+    ],
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -20,6 +30,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun budgetDao(): BudgetDao
     abstract fun recurringDao(): RecurringDao
+    abstract fun savingsDao(): SavingsDao
 
     companion object {
         fun build(context: Context): AppDatabase =
