@@ -10,3 +10,8 @@
   - Không gọi Repository trực tiếp trong composable.
 - Chuỗi giao diện bằng tiếng Việt, đặt trong `res/values/strings.xml` khi có thể.
 - Không để code chết, log debug hay TODO không có lý do.
+- Giao diện: dùng `GlassCard` (thẻ kính), `HeroCard` (thẻ nổi bật gradient), `AppFab` (nút ＋), `MonthSelector` trong `ui/components/`.
+  Không dùng `Card`/`Surface` mặc định: `background`/`surface` của theme trong suốt để lộ nền gradient.
+- Màu thu/chi/cảnh báo lấy qua `IncomeColor`/`ExpenseColor`/`WarningColor` (đọc theo theme) — không hard-code.
+- Màn nào cần che nội dung phía sau (màn khoá, hộp thoại toàn màn) phải dùng `AppBackground` (nền đục).
+- Thêm/sửa màu trong `Palette.kt` thì chạy `PaletteTest` (kiểm tra tương phản WCAG cho mọi màu chủ đạo).

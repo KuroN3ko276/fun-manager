@@ -16,10 +16,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,7 +40,9 @@ import com.funmanager.R
 import com.funmanager.data.Category
 import com.funmanager.data.RecurringRule
 import com.funmanager.data.TransactionType
+import com.funmanager.ui.components.AppFab
 import com.funmanager.ui.components.CategoryIcon
+import com.funmanager.ui.components.GlassCard
 import com.funmanager.ui.components.MoneyText
 import com.funmanager.ui.components.shortDate
 import com.funmanager.ui.theme.ExpenseColor
@@ -83,9 +82,7 @@ fun RecurringListScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAdd, modifier = Modifier.navigationBarsPadding()) {
-                Icon(Icons.Filled.Add, stringResource(R.string.add_recurring))
-            }
+            AppFab(onClick = onAdd, modifier = Modifier.navigationBarsPadding(), contentDescription = stringResource(R.string.add_recurring))
         },
         contentWindowInsets = WindowInsets(0),
     ) { padding ->
@@ -95,7 +92,7 @@ fun RecurringListScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             item {
-                Card(Modifier.fillMaxWidth()) {
+                GlassCard(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(stringResource(R.string.recurring_explain), style = MaterialTheme.typography.bodySmall)
                         Row {
@@ -119,8 +116,16 @@ fun RecurringListScreen(
                     )
                 }
             }
-            items(state.items, key = { it.rule.id }) { item ->
-                RecurringRow(item, onClick = { onOpen(item.rule.id) }, onToggle = { onToggle(item.rule, it) })
+            if (state.items.isNotEmpty()) {
+                item {
+                    GlassCard(Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(horizontal = 14.dp, vertical = 6.dp)) {
+                            state.items.forEach { item ->
+                                RecurringRow(item, onClick = { onOpen(item.rule.id) }, onToggle = { onToggle(item.rule, it) })
+                            }
+                        }
+                    }
+                }
             }
         }
     }

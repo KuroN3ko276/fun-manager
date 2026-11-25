@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -49,6 +48,7 @@ import com.funmanager.data.SavingsGoal
 import com.funmanager.data.TransactionType
 import com.funmanager.domain.formatVnd
 import com.funmanager.ui.components.AmountField
+import com.funmanager.ui.components.GlassCard
 import com.funmanager.ui.components.MoneyText
 import com.funmanager.ui.components.shortDate
 import com.funmanager.ui.theme.FunManagerTheme
@@ -153,25 +153,33 @@ fun GoalDetailScreen(
                     )
                 }
             }
-            items(state.deposits, key = { it.id }) { deposit ->
-                Row(
-                    modifier = Modifier.fillMaxWidth().clickable { onDepositClick(deposit) }.padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(Modifier.weight(1f)) {
-                        Text(deposit.date.shortDate(), style = MaterialTheme.typography.bodyMedium)
-                        if (deposit.note.isNotBlank()) {
-                            Text(
-                                deposit.note,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+            if (state.deposits.isNotEmpty()) {
+                item {
+                    GlassCard(Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(horizontal = 14.dp, vertical = 6.dp)) {
+                            state.deposits.forEach { deposit ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().clickable { onDepositClick(deposit) }.padding(vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text(deposit.date.shortDate(), style = MaterialTheme.typography.bodyMedium)
+                                        if (deposit.note.isNotBlank()) {
+                                            Text(
+                                                deposit.note,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            )
+                                        }
+                                    }
+                                    MoneyText(
+                                        abs(deposit.amount),
+                                        type = if (deposit.amount >= 0) TransactionType.INCOME else TransactionType.EXPENSE,
+                                    )
+                                }
+                            }
                         }
                     }
-                    MoneyText(
-                        abs(deposit.amount),
-                        type = if (deposit.amount >= 0) TransactionType.INCOME else TransactionType.EXPENSE,
-                    )
                 }
             }
         }

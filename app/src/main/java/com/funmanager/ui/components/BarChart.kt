@@ -52,10 +52,12 @@ fun IncomeExpenseBarChart(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Box(Modifier.weight(1f).fillMaxWidth()) {
+                    val incomeColor = IncomeColor
+                    val expenseColor = ExpenseColor
                     Canvas(Modifier.fillMaxSize().padding(horizontal = 6.dp)) {
                         val barWidth = size.width / 2 - 2.dp.toPx()
                         val radius = CornerRadius(3.dp.toPx())
-                        listOf(t.income to IncomeColor, t.expense to ExpenseColor).forEachIndexed { i, (value, color) ->
+                        listOf(t.income to incomeColor, t.expense to expenseColor).forEachIndexed { i, (value, color) ->
                             val h = size.height * value / max
                             drawRoundRect(
                                 color = color,

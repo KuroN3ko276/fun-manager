@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Card
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -62,10 +61,10 @@ import com.funmanager.data.DefaultCategories
 import com.funmanager.data.TransactionType
 import com.funmanager.domain.DatePreset
 import com.funmanager.ui.components.CategoryIcon
-import com.funmanager.ui.components.DayHeader
+import com.funmanager.ui.components.DayGroupCard
+import com.funmanager.ui.components.GlassCard
 import com.funmanager.ui.components.IconBubble
 import com.funmanager.ui.components.MoneyText
-import com.funmanager.ui.components.TransactionRow
 import com.funmanager.ui.components.iconFor
 import com.funmanager.ui.components.shortDate
 import com.funmanager.ui.theme.ExpenseColor
@@ -174,13 +173,8 @@ fun SearchScreen(state: SearchUiState, actions: SearchActions, autoFocus: Boolea
             }
             item { ResultSummary(state) }
             state.results.forEach { (date, items) ->
-                item(key = "d" + date.toEpochDay()) { DayHeader(date, items) }
-                items(items, key = { it.transaction.id }) { item ->
-                    TransactionRow(
-                        item,
-                        onClick = { actions.onOpen(item.transaction.id) },
-                        extraInfo = state.walletNames[item.transaction.walletId],
-                    )
+                item(key = "d" + date.toEpochDay()) {
+                    DayGroupCard(date, items, actions.onOpen, extraInfo = { state.walletNames[it.transaction.walletId] })
                 }
             }
         }
@@ -189,7 +183,7 @@ fun SearchScreen(state: SearchUiState, actions: SearchActions, autoFocus: Boolea
 
 @Composable
 private fun ResultSummary(state: SearchUiState) {
-    Card(Modifier.fillMaxWidth()) {
+    GlassCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(stringResource(R.string.search_count, state.count), style = MaterialTheme.typography.titleSmall)
             if (state.count > 0) {
@@ -217,7 +211,7 @@ private fun ResultSummary(state: SearchUiState) {
 private fun FilterPanel(state: SearchUiState, actions: SearchActions) {
     val filter = state.input.filter
     var showRangePicker by rememberSaveable { mutableStateOf(false) }
-    Card(Modifier.fillMaxWidth()) {
+    GlassCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(stringResource(R.string.filter_type), style = MaterialTheme.typography.titleSmall)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

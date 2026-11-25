@@ -1,6 +1,6 @@
 package com.funmanager.ui.home
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,24 +11,23 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -55,14 +54,14 @@ import com.funmanager.domain.BudgetLevel
 import com.funmanager.domain.BudgetOverview
 import com.funmanager.domain.formatVnd
 import com.funmanager.domain.summarize
-import com.funmanager.ui.components.DayHeader
-import com.funmanager.ui.components.MoneyText
+import com.funmanager.ui.components.AppFab
+import com.funmanager.ui.components.BalanceHero
+import com.funmanager.ui.components.DayGroupCard
+import com.funmanager.ui.components.GlassCard
 import com.funmanager.ui.components.MonthSelector
 import com.funmanager.ui.components.TransactionItem
-import com.funmanager.ui.components.TransactionRow
 import com.funmanager.ui.theme.ExpenseColor
 import com.funmanager.ui.theme.FunManagerTheme
-import com.funmanager.ui.theme.IncomeColor
 import com.funmanager.ui.theme.WarningColor
 import java.time.LocalDate
 import java.time.YearMonth
@@ -78,10 +77,11 @@ fun HomeRoute(
     onOpenSearch: () -> Unit,
     onOpenWallets: () -> Unit,
     onOpenSecurity: () -> Unit,
+    onOpenAppearance: () -> Unit,
     viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    HomeScreen(state, viewModel::onMonthChange, onAdd, onOpen, onOpenBudget, onOpenCategories, onOpenRecurring, onOpenSearch, onOpenWallets, onOpenSecurity)
+    HomeScreen(state, viewModel::onMonthChange, onAdd, onOpen, onOpenBudget, onOpenCategories, onOpenRecurring, onOpenSearch, onOpenWallets, onOpenSecurity, onOpenAppearance)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -97,6 +97,7 @@ fun HomeScreen(
     onOpenSearch: () -> Unit,
     onOpenWallets: () -> Unit,
     onOpenSecurity: () -> Unit,
+    onOpenAppearance: () -> Unit,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     Scaffold(
@@ -136,6 +137,14 @@ fun HomeScreen(
                             },
                         )
                         DropdownMenuItem(
+                            text = { Text(stringResource(R.string.appearance)) },
+                            leadingIcon = { Icon(Icons.Filled.Palette, contentDescription = null) },
+                            onClick = {
+                                menuOpen = false
+                                onOpenAppearance()
+                            },
+                        )
+                        DropdownMenuItem(
                             text = { Text(stringResource(R.string.security)) },
                             leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null) },
                             onClick = {
@@ -148,16 +157,14 @@ fun HomeScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAdd) {
-                Icon(Icons.Filled.Add, stringResource(R.string.add_transaction))
-            }
+            AppFab(onClick = onAdd, contentDescription = stringResource(R.string.add_transaction))
         },
         contentWindowInsets = WindowInsets(0),
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 88.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item { MonthSelector(state.month, onMonthChange) }
             item { SummaryCard(state) }
@@ -176,13 +183,8 @@ fun HomeScreen(
                 }
             }
             state.days.forEach { (date, items) ->
-                item(key = date.toEpochDay()) { DayHeader(date, items) }
-                items(items, key = { it.transaction.id }) { item ->
-                    TransactionRow(
-                        item,
-                        onClick = { onOpen(item.transaction.id) },
-                        extraInfo = state.walletNames[item.transaction.walletId],
-                    )
+                item(key = date.toEpochDay()) {
+                    DayGroupCard(date, items, onOpen, extraInfo = { state.walletNames[it.transaction.walletId] })
                 }
             }
         }
@@ -191,22 +193,14 @@ fun HomeScreen(
 
 @Composable
 private fun SummaryCard(state: HomeUiState) {
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stringResource(R.string.balance), style = MaterialTheme.typography.labelLarge)
-            MoneyText(state.summary.balance, style = MaterialTheme.typography.headlineMedium)
-            Row(Modifier.fillMaxWidth()) {
-                Column(Modifier.weight(1f)) {
-                    Text(stringResource(R.string.income), style = MaterialTheme.typography.labelMedium)
-                    MoneyText(state.summary.income, color = IncomeColor)
-                }
-                Column(Modifier.weight(1f)) {
-                    Text(stringResource(R.string.expense), style = MaterialTheme.typography.labelMedium)
-                    MoneyText(state.summary.expense, color = ExpenseColor)
-                }
-            }
-        }
-    }
+    BalanceHero(
+        label = stringResource(R.string.balance_of_month),
+        balance = state.summary.balance,
+        income = state.summary.income,
+        expense = state.summary.expense,
+        incomeLabel = stringResource(R.string.income),
+        expenseLabel = stringResource(R.string.expense),
+    )
 }
 
 @Composable
@@ -214,12 +208,14 @@ private fun BudgetAlert(budget: BudgetOverview, onClick: () -> Unit) {
     val total = budget.total
     val exceeded = total?.level == BudgetLevel.EXCEEDED || budget.alerts.any { it.progress?.level == BudgetLevel.EXCEEDED }
     val tint = if (exceeded) ExpenseColor else WarningColor
-    Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = tint.copy(alpha = 0.12f)),
-    ) {
-        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Filled.Warning, contentDescription = null, tint = tint)
+    GlassCard(Modifier.fillMaxWidth(), onClick = onClick, strong = true) {
+        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier.size(36.dp).background(tint.copy(alpha = 0.18f), CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Filled.Warning, contentDescription = null, tint = tint, modifier = Modifier.size(20.dp))
+            }
             Spacer(Modifier.width(12.dp))
             Column {
                 when (total?.level) {
@@ -274,6 +270,7 @@ private fun HomeScreenPreview() {
             onOpenSearch = {},
             onOpenWallets = {},
             onOpenSecurity = {},
+            onOpenAppearance = {},
         )
     }
 }

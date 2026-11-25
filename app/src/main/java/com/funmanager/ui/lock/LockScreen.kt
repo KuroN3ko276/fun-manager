@@ -13,7 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.funmanager.R
 import com.funmanager.lock.UnlockResult
+import com.funmanager.ui.components.AppBackground
 import com.funmanager.ui.theme.FunManagerTheme
 import kotlinx.coroutines.delay
 
@@ -71,7 +71,8 @@ fun LockScreen(
         pin = ""
     }
 
-    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
+    // Nền đục (AppBackground) để không lộ nội dung app phía sau màn khoá.
+    AppBackground {
         Column(
             modifier = Modifier.fillMaxSize().safeDrawingPadding().padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,

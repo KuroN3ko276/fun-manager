@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Card
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,6 +22,7 @@ import com.funmanager.data.GoalWithSaved
 import com.funmanager.domain.GoalProgress
 import com.funmanager.domain.formatVnd
 import com.funmanager.domain.monthlyNeeded
+import com.funmanager.ui.components.GlassCard
 import com.funmanager.ui.components.IconBubble
 import com.funmanager.ui.components.MoneyText
 import com.funmanager.ui.components.iconFor
@@ -59,10 +59,12 @@ fun GoalCard(item: GoalWithSaved, modifier: Modifier = Modifier, onClick: (() ->
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
                     Text(item.goal.name, style = MaterialTheme.typography.titleMedium)
-                    Row(verticalAlignment = Alignment.Bottom) {
-                        MoneyText(item.saved, color = color)
-                        Text(" / " + formatVnd(item.goal.target), style = MaterialTheme.typography.bodySmall)
-                    }
+                    MoneyText(item.saved, color = color)
+                    Text(
+                        stringResource(R.string.goal_of_target, formatVnd(item.goal.target)),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
                 Text(
                     "${(progress.ratio * 100).roundToInt()}%",
@@ -86,9 +88,5 @@ fun GoalCard(item: GoalWithSaved, modifier: Modifier = Modifier, onClick: (() ->
             }
         }
     }
-    if (onClick != null) {
-        Card(onClick = onClick, modifier = modifier.fillMaxWidth()) { content() }
-    } else {
-        Card(modifier = modifier.fillMaxWidth()) { content() }
-    }
+    GlassCard(modifier = modifier.fillMaxWidth(), onClick = onClick) { content() }
 }

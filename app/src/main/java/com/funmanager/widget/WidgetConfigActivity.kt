@@ -20,10 +20,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -44,7 +42,9 @@ import com.funmanager.R
 import com.funmanager.data.Category
 import com.funmanager.data.TransactionType
 import com.funmanager.domain.WIDGET_MAX_CATEGORIES
+import com.funmanager.ui.components.AppBackground
 import com.funmanager.ui.components.CategoryIcon
+import com.funmanager.ui.components.GlassCard
 import com.funmanager.ui.theme.FunManagerTheme
 import kotlinx.coroutines.launch
 import java.time.YearMonth
@@ -67,10 +67,11 @@ class WidgetConfigActivity : ComponentActivity() {
         enableEdgeToEdge()
         val store = WidgetConfigStore(this)
         val initial = store.get(widgetId)
-        val repository = (application as FunManagerApp).container.repository
+        val container = (application as FunManagerApp).container
+        val repository = container.repository
 
         setContent {
-            FunManagerTheme {
+            FunManagerTheme(container.accent.value) {
                 var categories by remember { mutableStateOf<List<Category>>(emptyList()) }
                 var showTotal by remember { mutableStateOf(initial.showTotal) }
                 val selected = remember { mutableStateListOf<Long>() }
@@ -124,7 +125,7 @@ private fun WidgetConfigScreen(
     onCancel: () -> Unit,
     onSave: () -> Unit,
 ) {
-    Surface(Modifier.fillMaxSize()) {
+    AppBackground {
         Column(Modifier.fillMaxSize().safeDrawingPadding()) {
             Text(
                 stringResource(R.string.widget_config_title),
@@ -137,7 +138,7 @@ private fun WidgetConfigScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 item {
-                    Card(Modifier.fillMaxWidth()) {
+                    GlassCard(Modifier.fillMaxWidth()) {
                         Row(
                             Modifier.fillMaxWidth().clickable { onShowTotal(!showTotal) }.padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically,

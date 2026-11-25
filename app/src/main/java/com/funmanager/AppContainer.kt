@@ -4,7 +4,9 @@ import android.content.Context
 import com.funmanager.data.AppDatabase
 import com.funmanager.data.FinanceRepository
 import com.funmanager.data.LockStore
+import com.funmanager.data.ThemeStore
 import com.funmanager.lock.AppLockManager
+import com.funmanager.ui.theme.Accent
 import com.funmanager.widget.SummaryWidgetProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,6 +25,17 @@ class AppContainer(context: Context) {
     val repository = FinanceRepository(AppDatabase.build(appContext))
 
     val appLock = AppLockManager(LockStore(appContext))
+
+    private val themeStore = ThemeStore(appContext)
+
+    /** Màu chủ đạo hiện tại; đổi ở màn Giao diện. */
+    val accent = MutableStateFlow(themeStore.accent)
+
+    fun setAccent(value: Accent) {
+        themeStore.accent = value
+        accent.value = value
+        SummaryWidgetProvider.updateAll(appContext)
+    }
 
     /** Phạm vi coroutine sống cùng app, cho các việc nền ngắn. */
     val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)

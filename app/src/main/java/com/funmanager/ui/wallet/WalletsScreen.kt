@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
@@ -25,14 +24,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -60,12 +57,16 @@ import com.funmanager.data.Wallet
 import com.funmanager.domain.TransferError
 import com.funmanager.domain.formatVnd
 import com.funmanager.ui.components.AmountField
+import com.funmanager.ui.components.AppFab
 import com.funmanager.ui.components.CATEGORY_COLORS
+import com.funmanager.ui.components.GlassCard
+import com.funmanager.ui.components.HeroCard
 import com.funmanager.ui.components.IconBubble
 import com.funmanager.ui.components.MoneyText
 import com.funmanager.ui.components.WALLET_ICONS
 import com.funmanager.ui.components.WalletPicker
 import com.funmanager.ui.components.iconFor
+import com.funmanager.ui.components.onAccentGradient
 import com.funmanager.ui.components.shortDate
 import com.funmanager.ui.theme.ExpenseColor
 import com.funmanager.ui.theme.FunManagerTheme
@@ -143,9 +144,7 @@ fun WalletsScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAdd, modifier = Modifier.navigationBarsPadding()) {
-                Icon(Icons.Filled.Add, stringResource(R.string.add_wallet))
-            }
+            AppFab(onClick = onAdd, modifier = Modifier.navigationBarsPadding(), contentDescription = stringResource(R.string.add_wallet))
         },
         contentWindowInsets = WindowInsets(0),
     ) { padding ->
@@ -155,32 +154,42 @@ fun WalletsScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             item {
-                Card(Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(stringResource(R.string.total_assets), style = MaterialTheme.typography.labelLarge)
-                        MoneyText(state.total, style = MaterialTheme.typography.headlineMedium)
-                        UpcomingText(state.totalUpcoming)
-                        if (state.wallets.size > 1) {
-                            FilledTonalButton(onClick = onTransfer) {
-                                Icon(Icons.Filled.SwapHoriz, contentDescription = null)
-                                Spacer(Modifier.width(8.dp))
-                                Text(stringResource(R.string.transfer))
-                            }
+                HeroCard {
+                    val on = onAccentGradient()
+                    Text(stringResource(R.string.total_assets), style = MaterialTheme.typography.titleSmall, color = on.copy(alpha = 0.85f))
+                    MoneyText(state.total, color = on, style = MaterialTheme.typography.headlineLarge)
+                    UpcomingText(state.totalUpcoming, color = on.copy(alpha = 0.85f))
+                    if (state.wallets.size > 1) {
+                        FilledTonalButton(
+                            onClick = onTransfer,
+                            colors = ButtonDefaults.filledTonalButtonColors(containerColor = on.copy(alpha = 0.18f), contentColor = on),
+                        ) {
+                            Icon(Icons.Filled.SwapHoriz, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.transfer))
                         }
                     }
                 }
             }
-            items(state.wallets, key = { it.wallet.id }) { item ->
-                Row(
-                    modifier = Modifier.fillMaxWidth().clickable { onEdit(item.wallet) }.padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    IconBubble(iconFor(item.wallet.icon), Color(item.wallet.color))
-                    Spacer(Modifier.width(12.dp))
-                    Text(item.wallet.name, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-                    Column(horizontalAlignment = Alignment.End) {
-                        MoneyText(item.balance, color = if (item.balance < 0) ExpenseColor else Color.Unspecified)
-                        UpcomingText(item.upcoming)
+            if (state.wallets.isNotEmpty()) {
+                item {
+                    GlassCard(Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(horizontal = 14.dp, vertical = 6.dp)) {
+                            state.wallets.forEach { item ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().clickable { onEdit(item.wallet) }.padding(vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    IconBubble(iconFor(item.wallet.icon), Color(item.wallet.color))
+                                    Spacer(Modifier.width(12.dp))
+                                    Text(item.wallet.name, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                                    Column(horizontalAlignment = Alignment.End) {
+                                        MoneyText(item.balance, color = if (item.balance < 0) ExpenseColor else Color.Unspecified)
+                                        UpcomingText(item.upcoming)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -192,29 +201,37 @@ fun WalletsScreen(
                         modifier = Modifier.padding(top = 16.dp),
                     )
                 }
-                items(state.transfers, key = { "t" + it.transfer.id }) { item ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth().clickable { onTransferClick(item) }.padding(vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Column(Modifier.weight(1f)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(item.from?.name.orEmpty(), style = MaterialTheme.typography.bodyMedium)
-                                Icon(
-                                    Icons.AutoMirrored.Filled.ArrowForward,
-                                    contentDescription = null,
-                                    modifier = Modifier.padding(horizontal = 4.dp),
-                                )
-                                Text(item.to?.name.orEmpty(), style = MaterialTheme.typography.bodyMedium)
+                if (state.transfers.isNotEmpty()) {
+                    item {
+                        GlassCard(Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(horizontal = 14.dp, vertical = 6.dp)) {
+                                state.transfers.forEach { item ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth().clickable { onTransferClick(item) }.padding(vertical = 6.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        Column(Modifier.weight(1f)) {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Text(item.from?.name.orEmpty(), style = MaterialTheme.typography.bodyMedium)
+                                                Icon(
+                                                    Icons.AutoMirrored.Filled.ArrowForward,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.padding(horizontal = 4.dp),
+                                                )
+                                                Text(item.to?.name.orEmpty(), style = MaterialTheme.typography.bodyMedium)
+                                            }
+                                            Text(
+                                                listOfNotNull(item.transfer.date.shortDate(), item.transfer.note.takeIf { it.isNotBlank() })
+                                                    .joinToString(" · "),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            )
+                                        }
+                                        MoneyText(item.transfer.amount)
+                                    }
+                                }
                             }
-                            Text(
-                                listOfNotNull(item.transfer.date.shortDate(), item.transfer.note.takeIf { it.isNotBlank() })
-                                    .joinToString(" · "),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
                         }
-                        MoneyText(item.transfer.amount)
                     }
                 }
             }
@@ -224,13 +241,13 @@ fun WalletsScreen(
 
 /** "Sắp tới: +X ₫" cho các khoản ghi ngày sau hôm nay (chưa tính vào số dư). */
 @Composable
-private fun UpcomingText(amount: Long) {
+private fun UpcomingText(amount: Long, color: Color = MaterialTheme.colorScheme.onSurfaceVariant) {
     if (amount == 0L) return
     val sign = if (amount > 0) "+" else "−"
     Text(
         stringResource(R.string.upcoming_amount, sign + formatVnd(abs(amount))),
         style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        color = color,
     )
 }
 

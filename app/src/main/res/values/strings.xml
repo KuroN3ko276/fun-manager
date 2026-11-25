@@ -194,4 +194,13 @@
     <string name="budget_since">Áp dụng từ %1$s</string>
 
     <string name="upcoming_amount">Sắp tới: %1$s</string>
+
+    <string name="appearance">Giao diện</string>
+    <string name="appearance_preview">Xem trước</string>
+    <string name="accent_color">Màu chủ đạo</string>
+    <string name="appearance_dark_note">Chế độ sáng / tối tự theo cài đặt của điện thoại.</string>
+
+    <string name="balance_of_month">Số dư tháng</string>
+
+    <string name="goal_of_target">trên mục tiêu %1$s</string>
 </resources>

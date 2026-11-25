@@ -13,12 +13,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -60,6 +58,7 @@ import com.funmanager.domain.groupDigits
 import com.funmanager.domain.summarize
 import com.funmanager.ui.components.BudgetBar
 import com.funmanager.ui.components.CategoryIcon
+import com.funmanager.ui.components.GlassCard
 import com.funmanager.ui.components.MoneyText
 import com.funmanager.ui.components.MonthSelector
 import com.funmanager.ui.components.color
@@ -104,8 +103,16 @@ fun BudgetScreen(
             item {
                 Text(stringResource(R.string.budget_by_category), style = MaterialTheme.typography.titleSmall)
             }
-            items(state.overview.categories, key = { it.category.id }) { row ->
-                CategoryBudgetRow(row, inheritedSince(state, row.category.id), onClick = { editing = row.category.id })
+            if (state.overview.categories.isNotEmpty()) {
+                item {
+                    GlassCard(Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(horizontal = 14.dp, vertical = 6.dp)) {
+                            state.overview.categories.forEach { row ->
+                                CategoryBudgetRow(row, inheritedSince(state, row.category.id), onClick = { editing = row.category.id })
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -132,7 +139,7 @@ fun BudgetScreen(
 @Composable
 private fun TotalBudgetCard(state: BudgetUiState, onClick: () -> Unit) {
     val total = state.overview.total
-    Card(Modifier.fillMaxWidth().clickable(onClick = onClick)) {
+    GlassCard(Modifier.fillMaxWidth(), onClick = onClick) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(stringResource(R.string.total_budget), style = MaterialTheme.typography.labelLarge)
             if (total == null) {

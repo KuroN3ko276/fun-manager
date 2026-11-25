@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -14,6 +15,8 @@ import com.funmanager.ui.theme.ExpenseColor
 import com.funmanager.ui.theme.IncomeColor
 import com.funmanager.ui.theme.WarningColor
 
+@Composable
+@ReadOnlyComposable
 fun BudgetLevel.color(): Color = when (this) {
     BudgetLevel.OK -> IncomeColor
     BudgetLevel.WARNING -> WarningColor

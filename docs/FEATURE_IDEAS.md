@@ -19,3 +19,4 @@
 - [x] **Widget màn hình chính** — số đã chi, số tiền còn lại theo danh mục tự chọn (không hiện thu nhập).
 - [x] **Khoá app** — vân tay hoặc PIN.
 - [x] **Mục tiêu tiết kiệm** — đặt mục tiêu và theo dõi tiến độ.
+- [x] **Giao diện hiện đại & màu chủ đạo** — phong cách kính mờ, 8 màu tuỳ chọn, theo chế độ sáng / tối.

@@ -15,10 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -47,6 +45,7 @@ import com.funmanager.domain.CategoryTotal
 import com.funmanager.domain.formatVnd
 import com.funmanager.domain.summarize
 import com.funmanager.ui.components.CategoryIcon
+import com.funmanager.ui.components.GlassCard
 import com.funmanager.ui.components.IncomeExpenseBarChart
 import com.funmanager.ui.components.MoneyText
 import com.funmanager.ui.components.MonthSelector
@@ -121,14 +120,22 @@ fun ReportScreen(
                     )
                 }
             }
-            items(state.totals, key = { it.category.id }) { CategoryTotalRow(it) }
+            if (state.totals.isNotEmpty()) {
+                item {
+                    GlassCard(Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(horizontal = 14.dp, vertical = 6.dp)) {
+                            state.totals.forEach { CategoryTotalRow(it) }
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
 private fun TrendCard(state: ReportUiState, onSelect: (YearMonth) -> Unit) {
-    Card(Modifier.fillMaxWidth()) {
+    GlassCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(

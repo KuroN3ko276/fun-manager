@@ -7,17 +7,20 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.content.res.Configuration
 import android.os.Build
 import android.view.View
 import android.widget.RemoteViews
 import com.funmanager.FunManagerApp
 import com.funmanager.MainActivity
 import com.funmanager.R
+import com.funmanager.data.ThemeStore
 import com.funmanager.data.WidgetData
 import com.funmanager.domain.BudgetLevel
 import com.funmanager.domain.WidgetCategoryLine
 import com.funmanager.domain.formatVnd
 import com.funmanager.ui.components.label
+import com.funmanager.ui.theme.paletteFor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -78,6 +81,10 @@ class SummaryWidgetProvider : AppWidgetProvider() {
 
         private fun buildViews(context: Context, widgetId: Int, config: WidgetConfig, data: WidgetData): RemoteViews {
             val views = RemoteViews(context.packageName, R.layout.widget_summary)
+            val accent = accentColor(context)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                views.setColorStateList(R.id.widget_add, "setBackgroundTintList", ColorStateList.valueOf(accent))
+            }
             val s = data.snapshot
             views.setTextViewText(R.id.widget_month, s.month.label())
 
@@ -92,7 +99,7 @@ class SummaryWidgetProvider : AppWidgetProvider() {
                     views.setViewVisibility(R.id.widget_progress, View.VISIBLE)
                     views.setViewVisibility(R.id.widget_detail, View.VISIBLE)
                     views.setProgressBar(R.id.widget_progress, 100, s.budgetPercent, false)
-                    tintProgress(context, views, R.id.widget_progress, budget.level)
+                    tintProgress(context, views, R.id.widget_progress, budget.level, accent)
                     val text = if (budget.level == BudgetLevel.EXCEEDED) {
                         context.getString(R.string.widget_over_budget, formatVnd(-budget.remaining), formatVnd(budget.limit))
                     } else {
@@ -107,7 +114,7 @@ class SummaryWidgetProvider : AppWidgetProvider() {
                 if (line == null) {
                     views.setViewVisibility(row.root, View.GONE)
                 } else {
-                    bindRow(context, views, row, line)
+                    bindRow(context, views, row, line, accent)
                 }
             }
             val nothing = data.lines.isEmpty() && !config.showTotal
@@ -120,7 +127,7 @@ class SummaryWidgetProvider : AppWidgetProvider() {
             return views
         }
 
-        private fun bindRow(context: Context, views: RemoteViews, row: Row, line: WidgetCategoryLine) {
+        private fun bindRow(context: Context, views: RemoteViews, row: Row, line: WidgetCategoryLine, accent: Int) {
             views.setViewVisibility(row.root, View.VISIBLE)
             views.setInt(row.dot, "setColorFilter", line.category.color.toInt())
             views.setTextViewText(row.name, line.category.name)
@@ -136,22 +143,29 @@ class SummaryWidgetProvider : AppWidgetProvider() {
                     context.getString(R.string.widget_cat_left, formatVnd(budget.remaining))
                 }
                 views.setTextViewText(row.amount, text)
-                views.setTextColor(row.amount, context.getColor(levelColor(budget.level)))
+                views.setTextColor(row.amount, levelColorInt(context, budget.level, accent))
                 views.setViewVisibility(row.progress, View.VISIBLE)
                 views.setProgressBar(row.progress, 100, (budget.ratio * 100).toInt().coerceIn(0, 100), false)
-                tintProgress(context, views, row.progress, budget.level)
+                tintProgress(context, views, row.progress, budget.level, accent)
             }
         }
 
-        private fun levelColor(level: BudgetLevel) = when (level) {
-            BudgetLevel.OK -> R.color.widget_accent
-            BudgetLevel.WARNING -> R.color.widget_warning
-            BudgetLevel.EXCEEDED -> R.color.widget_expense
+        /** Màu chủ đạo hiện tại theo chế độ sáng/tối của hệ thống. */
+        private fun accentColor(context: Context): Int {
+            val night = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+                Configuration.UI_MODE_NIGHT_YES
+            return paletteFor(ThemeStore(context).accent, night).primary.toInt()
         }
 
-        private fun tintProgress(context: Context, views: RemoteViews, id: Int, level: BudgetLevel) {
+        private fun levelColorInt(context: Context, level: BudgetLevel, accent: Int): Int = when (level) {
+            BudgetLevel.OK -> accent
+            BudgetLevel.WARNING -> context.getColor(R.color.widget_warning)
+            BudgetLevel.EXCEEDED -> context.getColor(R.color.widget_expense)
+        }
+
+        private fun tintProgress(context: Context, views: RemoteViews, id: Int, level: BudgetLevel, accent: Int) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                views.setColorStateList(id, "setProgressTintList", ColorStateList.valueOf(context.getColor(levelColor(level))))
+                views.setColorStateList(id, "setProgressTintList", ColorStateList.valueOf(levelColorInt(context, level, accent)))
             }
         }
 

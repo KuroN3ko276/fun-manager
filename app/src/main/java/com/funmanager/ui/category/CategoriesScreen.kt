@@ -17,18 +17,15 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,9 +51,11 @@ import com.funmanager.data.Category
 import com.funmanager.data.DefaultCategories
 import com.funmanager.data.TransactionType
 import com.funmanager.domain.CategoryNameError
+import com.funmanager.ui.components.AppFab
 import com.funmanager.ui.components.CATEGORY_COLORS
 import com.funmanager.ui.components.CATEGORY_ICONS
 import com.funmanager.ui.components.CategoryIcon
+import com.funmanager.ui.components.GlassCard
 import com.funmanager.ui.components.IconBubble
 import com.funmanager.ui.components.TypeSegmented
 import com.funmanager.ui.components.iconFor
@@ -115,9 +114,7 @@ fun CategoriesScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAdd, modifier = Modifier.navigationBarsPadding()) {
-                Icon(Icons.Filled.Add, stringResource(R.string.add_category))
-            }
+            AppFab(onClick = onAdd, modifier = Modifier.navigationBarsPadding(), contentDescription = stringResource(R.string.add_category))
         },
         contentWindowInsets = WindowInsets(0),
     ) { padding ->
@@ -128,17 +125,25 @@ fun CategoriesScreen(
             item {
                 TypeSegmented(state.type, onTypeChange, Modifier.padding(vertical = 8.dp))
             }
-            items(state.categories, key = { it.id }) { category ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onEdit(category) }
-                        .padding(vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    CategoryIcon(category)
-                    Spacer(Modifier.width(16.dp))
-                    Text(category.name, style = MaterialTheme.typography.bodyLarge)
+            if (state.categories.isNotEmpty()) {
+                item {
+                    GlassCard(Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(horizontal = 14.dp, vertical = 6.dp)) {
+                            state.categories.forEach { category ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { onEdit(category) }
+                                        .padding(vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    CategoryIcon(category)
+                                    Spacer(Modifier.width(16.dp))
+                                    Text(category.name, style = MaterialTheme.typography.bodyLarge)
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

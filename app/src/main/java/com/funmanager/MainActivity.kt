@@ -6,7 +6,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,6 +13,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.funmanager.lock.AppLockManager
 import com.funmanager.lock.Biometric
 import com.funmanager.ui.FunManagerNavHost
+import com.funmanager.ui.components.AppBackground
 import com.funmanager.ui.lock.LockScreen
 import com.funmanager.ui.theme.FunManagerTheme
 import java.time.YearMonth
@@ -33,12 +33,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             val locked by lock.locked.collectAsStateWithLifecycle()
             val settings by lock.settings.collectAsStateWithLifecycle()
+            val accent by container.accent.collectAsStateWithLifecycle()
             LaunchedEffect(settings.enabled) {
                 // Ẩn nội dung app trong màn hình đa nhiệm khi bật khoá.
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) setRecentsScreenshotEnabled(!settings.enabled)
             }
-            FunManagerTheme {
-                Box {
+            FunManagerTheme(accent) {
+                AppBackground {
                     FunManagerNavHost(
                         addRequested = addRequested.value,
                         onAddHandled = { addRequested.value = false },

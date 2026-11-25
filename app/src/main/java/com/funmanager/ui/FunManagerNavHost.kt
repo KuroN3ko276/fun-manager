@@ -46,7 +46,10 @@ import com.funmanager.ui.savings.GoalDetailRoute
 import com.funmanager.ui.savings.GoalDetailViewModel
 import com.funmanager.ui.savings.SavingsRoute
 import com.funmanager.ui.search.SearchRoute
+import com.funmanager.ui.settings.AppearanceRoute
 import com.funmanager.ui.settings.SecurityRoute
+import com.funmanager.ui.theme.LocalAppColors
+import androidx.compose.ui.unit.dp
 import com.funmanager.ui.wallet.WalletsRoute
 
 private enum class Tab(val route: String, @StringRes val label: Int, val icon: ImageVector) {
@@ -63,6 +66,7 @@ private const val RECURRING_ROUTE = "recurring"
 private const val SEARCH_ROUTE = "search"
 private const val WALLETS_ROUTE = "wallets"
 private const val SECURITY_ROUTE = "security"
+private const val APPEARANCE_ROUTE = "appearance"
 private const val RECURRING_EDIT_ROUTE =
     "recurring/edit?${EditRecurringViewModel.ARG_ID}={${EditRecurringViewModel.ARG_ID}}"
 
@@ -103,7 +107,7 @@ fun FunManagerNavHost(addRequested: Boolean = false, onAddHandled: () -> Unit = 
         contentWindowInsets = WindowInsets(0),
         bottomBar = {
             if (Tab.entries.any { it.route == currentRoute }) {
-                NavigationBar {
+                NavigationBar(containerColor = LocalAppColors.current.glassStrong, tonalElevation = 0.dp) {
                     Tab.entries.forEach { tab ->
                         NavigationBarItem(
                             selected = currentRoute == tab.route,
@@ -147,8 +151,10 @@ fun FunManagerNavHost(addRequested: Boolean = false, onAddHandled: () -> Unit = 
                     onOpenSearch = { navController.navigate(SEARCH_ROUTE) },
                     onOpenWallets = { navController.navigate(WALLETS_ROUTE) },
                     onOpenSecurity = { navController.navigate(SECURITY_ROUTE) },
+                    onOpenAppearance = { navController.navigate(APPEARANCE_ROUTE) },
                 )
             }
+            composable(APPEARANCE_ROUTE) { AppearanceRoute(onBack = { navController.popBackStack() }) }
             composable(SECURITY_ROUTE) { SecurityRoute(onBack = { navController.popBackStack() }) }
             composable(WALLETS_ROUTE) { WalletsRoute(onBack = { navController.popBackStack() }) }
             composable(SEARCH_ROUTE) {

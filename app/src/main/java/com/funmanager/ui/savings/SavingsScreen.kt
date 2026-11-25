@@ -1,7 +1,6 @@
 package com.funmanager.ui.savings
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,12 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -32,7 +26,10 @@ import com.funmanager.R
 import com.funmanager.data.GoalWithSaved
 import com.funmanager.data.SavingsGoal
 import com.funmanager.domain.formatVnd
+import com.funmanager.ui.components.AppFab
+import com.funmanager.ui.components.HeroCard
 import com.funmanager.ui.components.MoneyText
+import com.funmanager.ui.components.onAccentGradient
 import com.funmanager.ui.theme.FunManagerTheme
 import java.time.LocalDate
 
@@ -52,9 +49,7 @@ fun SavingsScreen(state: SavingsUiState, onAdd: () -> Unit, onOpen: (Long) -> Un
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.tab_savings)) }) },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAdd) {
-                Icon(Icons.Filled.Add, stringResource(R.string.add_goal))
-            }
+            AppFab(onClick = onAdd, contentDescription = stringResource(R.string.add_goal))
         },
         contentWindowInsets = WindowInsets(0),
     ) { padding ->
@@ -64,17 +59,16 @@ fun SavingsScreen(state: SavingsUiState, onAdd: () -> Unit, onOpen: (Long) -> Un
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item {
-                Card(Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(stringResource(R.string.total_saved), style = MaterialTheme.typography.labelLarge)
-                        MoneyText(state.totalSaved, style = MaterialTheme.typography.headlineMedium)
-                        if (state.totalTarget > 0) {
-                            Text(
-                                stringResource(R.string.of_total_target, formatVnd(state.totalTarget)),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
+                HeroCard {
+                    val on = onAccentGradient()
+                    Text(stringResource(R.string.total_saved), style = MaterialTheme.typography.titleSmall, color = on.copy(alpha = 0.85f))
+                    MoneyText(state.totalSaved, color = on, style = MaterialTheme.typography.headlineLarge)
+                    if (state.totalTarget > 0) {
+                        Text(
+                            stringResource(R.string.of_total_target, formatVnd(state.totalTarget)),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = on.copy(alpha = 0.85f),
+                        )
                     }
                 }
             }

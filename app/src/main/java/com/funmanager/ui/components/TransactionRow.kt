@@ -39,6 +39,24 @@ fun DayHeader(date: LocalDate, items: List<TransactionItem>) {
     }
 }
 
+/** Thẻ kính gom các giao dịch của một ngày. */
+@Composable
+fun DayGroupCard(
+    date: LocalDate,
+    items: List<TransactionItem>,
+    onOpen: (Long) -> Unit,
+    extraInfo: (TransactionItem) -> String? = { null },
+) {
+    GlassCard(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(start = 14.dp, end = 14.dp, top = 2.dp, bottom = 8.dp)) {
+            DayHeader(date, items)
+            items.forEach { item ->
+                TransactionRow(item, onClick = { onOpen(item.transaction.id) }, extraInfo = extraInfo(item))
+            }
+        }
+    }
+}
+
 /** Một dòng giao dịch: biểu tượng danh mục, tên, ghi chú, số tiền. */
 @Composable
 fun TransactionRow(item: TransactionItem, onClick: () -> Unit, extraInfo: String? = null) {

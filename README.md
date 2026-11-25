@@ -17,6 +17,7 @@ Mọi dữ liệu chỉ lưu trên điện thoại: không cần tài khoản, k
 | **Danh mục** | Thêm / sửa / xoá danh mục với 27 biểu tượng và 15 màu. |
 | **Widget** | Số đã chi trong tháng và **số tiền còn lại** của tối đa 4 danh mục tự chọn. Nút ＋ để ghi nhanh. Widget không hiện thu nhập. |
 | **Khoá app** | Mã PIN 4–6 số, mở bằng vân tay, tự khoá khi rời app (ngay / 1 phút / 5 phút). |
+| **Giao diện** | Phong cách kính mờ (glass) trên nền gradient, 8 màu chủ đạo tuỳ chọn, tự theo chế độ sáng / tối của máy. Độ tương phản chữ được kiểm tra bằng test theo chuẩn WCAG. |
 
 Các tính năng dự kiến làm tiếp: [docs/FEATURE_IDEAS.md](docs/FEATURE_IDEAS.md).
 
@@ -92,6 +93,7 @@ sdk.dir=/home/<user>/Android/Sdk
 - **Room 2.6** (SQLite) với Kotlin Flow, migration tự động giữa các phiên bản schema
 - Kiến trúc **MVVM**: Composable → ViewModel (`StateFlow`) → Repository → DAO
 - DI thủ công qua `AppContainer`, không dùng Hilt/Koin
+- Theme tự sinh bảng màu từ màu chủ đạo (`ui/theme/Palette.kt`), kính mờ mô phỏng bằng lớp bán trong suốt trên nền gradient — không cần thư viện blur.
 - Biểu đồ vẽ bằng Compose `Canvas`. Widget dùng `RemoteViews`. Vân tay dùng `BiometricPrompt` của hệ thống. App không phụ thuộc thư viện ngoài AndroidX.
 - minSdk 26, targetSdk 35, Gradle 8.11, AGP 8.7
 
