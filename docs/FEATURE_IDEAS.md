@@ -2,8 +2,8 @@
 
 ## Bản 1 (đang làm)
 
-- [ ] Thêm / sửa / xoá khoản chi và khoản thu
-- [ ] Chọn tháng, xem tổng thu, tổng chi, số dư
+- [x] Thêm / sửa / xoá khoản chi và khoản thu
+- [x] Chọn tháng, xem tổng thu, tổng chi, số dư
 - [ ] Báo cáo tháng: biểu đồ tròn theo danh mục, danh sách xếp theo số tiền
 - [ ] Ngân sách tháng: tổng và theo danh mục, cảnh báo khi ≥80% và khi vượt
 

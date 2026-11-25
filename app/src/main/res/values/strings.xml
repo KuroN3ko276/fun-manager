@@ -1,3 +1,30 @@
 <resources>
     <string name="app_name">Quản lý chi tiêu</string>
+
+    <string name="tab_transactions">Giao dịch</string>
+    <string name="tab_report">Báo cáo</string>
+    <string name="tab_budget">Ngân sách</string>
+
+    <string name="previous_month">Tháng trước</string>
+    <string name="next_month">Tháng sau</string>
+
+    <string name="income">Thu</string>
+    <string name="expense">Chi</string>
+    <string name="balance">Số dư</string>
+    <string name="empty_month">Chưa có giao dịch nào trong tháng này</string>
+
+    <string name="add_transaction">Thêm giao dịch</string>
+    <string name="edit_transaction">Sửa giao dịch</string>
+    <string name="amount">Số tiền</string>
+    <string name="amount_error">Nhập số tiền lớn hơn 0</string>
+    <string name="category">Danh mục</string>
+    <string name="category_error">Chọn một danh mục</string>
+    <string name="note">Ghi chú</string>
+    <string name="save">Lưu</string>
+    <string name="delete">Xoá</string>
+    <string name="back">Quay lại</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Huỷ</string>
+    <string name="delete_confirm_title">Xoá giao dịch?</string>
+    <string name="delete_confirm_message">Giao dịch này sẽ bị xoá vĩnh viễn.</string>
 </resources>
