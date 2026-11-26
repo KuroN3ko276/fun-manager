@@ -2,14 +2,20 @@ package com.funmanager.data
 
 import androidx.room.withTransaction
 import com.funmanager.domain.BudgetChange
+import com.funmanager.domain.BudgetProgress
 import com.funmanager.domain.MonthSnapshot
+import com.funmanager.domain.ReallocationError
+import com.funmanager.domain.applyAdjustments
 import com.funmanager.domain.budgetChange
 import com.funmanager.domain.effectiveBudgets
+import com.funmanager.domain.maxReallocatable
+import com.funmanager.domain.validateReallocation
 import com.funmanager.domain.WidgetCategoryLine
 import com.funmanager.domain.widgetCategoryLines
 import com.funmanager.domain.dueOccurrences
 import com.funmanager.domain.resumeMonth
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -34,6 +40,7 @@ class FinanceRepository(private val db: AppDatabase) {
             db.recurringDao().moveCategory(categoryId, replacementId)
         }
         db.budgetDao().deleteForCategory(categoryId)
+        db.budgetDao().deleteAdjustmentsForCategory(categoryId)
         db.categoryDao().delete(categoryId)
     }
 
@@ -52,12 +59,35 @@ class FinanceRepository(private val db: AppDatabase) {
 
     suspend fun delete(transaction: Transaction) = db.transactionDao().delete(transaction)
 
-    /** Hạn mức đang áp dụng cho [month] (kế thừa từ lần đặt gần nhất trước đó). */
-    fun budgetsIn(month: YearMonth): Flow<List<Budget>> =
+    /** Hạn mức gốc của [month] (kế thừa từ lần đặt gần nhất trước đó), chưa tính các lần chuyển trong tháng. */
+    fun baseBudgetsIn(month: YearMonth): Flow<List<Budget>> =
         db.budgetDao().observeUpTo(month).map { effectiveBudgets(it, month) }
 
+    /** Hạn mức đang áp dụng cho [month], đã tính các lần chuyển hạn mức trong tháng. */
+    fun budgetsIn(month: YearMonth): Flow<List<Budget>> =
+        combine(baseBudgetsIn(month), adjustmentsIn(month)) { base, adj -> applyAdjustments(base, adj, month) }
+
+    fun adjustmentsIn(month: YearMonth): Flow<List<BudgetAdjustment>> = db.budgetDao().observeAdjustments(month)
+
     private suspend fun effectiveBudgetsAt(month: YearMonth): List<Budget> =
-        effectiveBudgets(db.budgetDao().getUpTo(month), month)
+        applyAdjustments(effectiveBudgets(db.budgetDao().getUpTo(month), month), db.budgetDao().getAdjustments(month), month)
+
+    /**
+     * Chuyển [amount] từ hạn mức [fromId] sang [toId], chỉ trong [month]. Kiểm tra lại số tối đa
+     * (phần chưa tiêu của [fromId]) ngay trong transaction; trả về lỗi nếu không hợp lệ.
+     */
+    suspend fun reallocate(month: YearMonth, fromId: Long, toId: Long, amount: Long): ReallocationError? =
+        db.withTransaction {
+            val limit = effectiveBudgetsAt(month).firstOrNull { it.categoryId == fromId }?.limit
+            val spent = db.transactionDao().expenseByCategory(month.atDay(1), month.atEndOfMonth())
+                .firstOrNull { it.categoryId == fromId }?.total ?: 0L
+            val max = maxReallocatable(limit?.let { BudgetProgress(spent, it) })
+            validateReallocation(fromId, toId, amount, max).also { error ->
+                if (error == null) db.budgetDao().insertAdjustment(BudgetAdjustment(month = month, fromCategoryId = fromId, toCategoryId = toId, amount = amount))
+            }
+        }
+
+    suspend fun deleteAdjustment(id: Long) = db.budgetDao().deleteAdjustment(id)
 
     /** Đặt (hoặc bỏ khi [limit] null/≤0) hạn mức từ [month] trở đi, cho tới lần sửa tiếp theo. */
     suspend fun setBudget(month: YearMonth, categoryId: Long, limit: Long?) = db.withTransaction {

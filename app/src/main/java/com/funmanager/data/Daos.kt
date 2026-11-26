@@ -82,6 +82,21 @@ interface BudgetDao {
 
     @Query("DELETE FROM budgets WHERE categoryId = :categoryId")
     suspend fun deleteForCategory(categoryId: Long)
+
+    @Query("SELECT * FROM budget_adjustments WHERE month = :month ORDER BY id")
+    fun observeAdjustments(month: YearMonth): Flow<List<BudgetAdjustment>>
+
+    @Query("SELECT * FROM budget_adjustments WHERE month = :month ORDER BY id")
+    suspend fun getAdjustments(month: YearMonth): List<BudgetAdjustment>
+
+    @Insert
+    suspend fun insertAdjustment(adjustment: BudgetAdjustment)
+
+    @Query("DELETE FROM budget_adjustments WHERE id = :id")
+    suspend fun deleteAdjustment(id: Long)
+
+    @Query("DELETE FROM budget_adjustments WHERE fromCategoryId = :categoryId OR toCategoryId = :categoryId")
+    suspend fun deleteAdjustmentsForCategory(categoryId: Long)
 }
 
 @Dao

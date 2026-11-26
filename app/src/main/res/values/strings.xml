@@ -213,4 +213,19 @@
     <string name="over_by">Đã vượt</string>
     <string name="total_near_warning">Sắp hết ngân sách tháng</string>
     <string name="total_over_warning">Đã vượt ngân sách tháng</string>
+
+    <string name="reallocate">Chuyển hạn mức</string>
+    <string name="reallocate_short">Chuyển</string>
+    <string name="reallocate_from">Từ danh mục</string>
+    <string name="reallocate_to">Sang danh mục</string>
+    <string name="reallocate_amount">Số tiền chuyển</string>
+    <string name="reallocate_hint">Tối đa %1$s · chỉ áp dụng cho %2$s</string>
+    <string name="reallocate_pick_source">Chọn danh mục còn hạn mức chưa tiêu</string>
+    <string name="reallocate_exceeds">Vượt phần còn lại (%1$s)</string>
+    <string name="reallocate_none_available">Chưa có danh mục nào còn hạn mức chưa tiêu</string>
+    <string name="reallocate_note">Chỉ đổi hạn mức của tháng này; ngân sách tổng và các tháng khác giữ nguyên.</string>
+    <string name="adjustment_in_month">%1$s chuyển trong tháng này</string>
+    <string name="adjustments_title">Đã chuyển trong tháng</string>
+    <string name="adjustment_line">%1$s → %2$s</string>
+    <string name="undo_adjustment">Hoàn tác lần chuyển này</string>
 </resources>

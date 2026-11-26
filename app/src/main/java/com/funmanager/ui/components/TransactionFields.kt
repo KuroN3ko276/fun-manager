@@ -78,9 +78,10 @@ fun CategoryPicker(
     selectedId: Long?,
     onSelect: (Long) -> Unit,
     isError: Boolean,
+    title: String = stringResource(R.string.category),
 ) {
     Column {
-        Text(stringResource(R.string.category), style = MaterialTheme.typography.titleSmall)
+        Text(title, style = MaterialTheme.typography.titleSmall)
         if (isError) {
             Text(
                 stringResource(R.string.category_error),

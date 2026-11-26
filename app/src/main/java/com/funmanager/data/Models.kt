@@ -74,6 +74,19 @@ data class Budget(
     }
 }
 
+/**
+ * Chuyển [amount] từ hạn mức danh mục [fromCategoryId] sang [toCategoryId], chỉ trong [month].
+ * Tách khỏi bảng `budgets` để không ảnh hưởng hạn mức kế thừa của các tháng sau.
+ */
+@Entity(tableName = "budget_adjustments", indices = [Index("month")])
+data class BudgetAdjustment(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val month: YearMonth,
+    val fromCategoryId: Long,
+    val toCategoryId: Long,
+    val amount: Long,
+)
+
 @Entity(tableName = "savings_goals")
 data class SavingsGoal(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,

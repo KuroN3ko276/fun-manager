@@ -16,14 +16,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Savings
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -56,18 +61,26 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.funmanager.R
 import com.funmanager.data.Budget
+import com.funmanager.data.BudgetAdjustment
 import com.funmanager.data.Category
 import com.funmanager.data.Transaction
 import com.funmanager.data.TransactionType
 import com.funmanager.domain.BudgetLevel
 import com.funmanager.domain.BudgetProgress
 import com.funmanager.domain.CategoryBudget
+import com.funmanager.domain.ReallocationError
+import com.funmanager.domain.applyAdjustments
 import com.funmanager.domain.budgetOverview
 import com.funmanager.domain.formatVnd
 import com.funmanager.domain.groupDigits
+import com.funmanager.domain.maxReallocatable
+import com.funmanager.domain.netAdjustments
+import com.funmanager.domain.parseVnd
 import com.funmanager.domain.summarize
+import com.funmanager.domain.validateReallocation
 import com.funmanager.ui.components.BudgetBar
 import com.funmanager.ui.components.CategoryIcon
+import com.funmanager.ui.components.CategoryPicker
 import com.funmanager.ui.components.GlassCard
 import com.funmanager.ui.components.HeroCard
 import com.funmanager.ui.components.MoneyText
@@ -83,7 +96,7 @@ import kotlin.math.roundToInt
 @Composable
 fun BudgetRoute(viewModel: BudgetViewModel = viewModel(factory = BudgetViewModel.Factory)) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    BudgetScreen(state, viewModel::onMonthChange, viewModel::setLimit)
+    BudgetScreen(state, viewModel::onMonthChange, viewModel::setLimit, viewModel::reallocate, viewModel::undoAdjustment)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -92,8 +105,12 @@ fun BudgetScreen(
     state: BudgetUiState,
     onMonthChange: (YearMonth) -> Unit,
     onSetLimit: (categoryId: Long, text: String) -> Unit,
+    onReallocate: (fromId: Long, toId: Long, amountText: String) -> Unit,
+    onUndoAdjustment: (id: Long) -> Unit,
 ) {
     var editing by rememberSaveable { mutableStateOf<Long?>(null) }
+    var reallocating by rememberSaveable { mutableStateOf(false) }
+    val canReallocate = state.overview.categories.any { maxReallocatable(it.progress) > 0 }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.tab_budget)) }) },
@@ -114,10 +131,29 @@ fun BudgetScreen(
                 )
             }
             item {
-                Text(stringResource(R.string.budget_by_category), style = MaterialTheme.typography.titleSmall)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        stringResource(R.string.budget_by_category),
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier.weight(1f),
+                    )
+                    TextButton(onClick = { reallocating = true }, enabled = canReallocate) {
+                        Icon(Icons.Filled.SwapHoriz, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(stringResource(R.string.reallocate_short))
+                    }
+                }
+            }
+            if (state.adjustments.isNotEmpty()) {
+                item { AdjustmentsCard(state, onUndoAdjustment) }
             }
             items(state.overview.categories, key = { it.category.id }) { row ->
-                CategoryBudgetCard(row, inheritedSince(state, row.category.id), onClick = { editing = row.category.id })
+                CategoryBudgetCard(
+                    row,
+                    inheritedSince(state, row.category.id),
+                    state.netAdjustment[row.category.id] ?: 0L,
+                    onClick = { editing = row.category.id },
+                )
             }
         }
     }
@@ -131,7 +167,7 @@ fun BudgetScreen(
         LimitDialog(
             title = name,
             month = state.month,
-            initial = state.limits[categoryId],
+            initial = state.baseLimits[categoryId],
             onDismiss = { editing = null },
             onSave = { text ->
                 onSetLimit(categoryId, text)
@@ -139,6 +175,123 @@ fun BudgetScreen(
             },
         )
     }
+
+    if (reallocating) {
+        ReallocateDialog(
+            month = state.month,
+            rows = state.overview.categories,
+            onDismiss = { reallocating = false },
+            onSave = { from, to, text ->
+                onReallocate(from, to, text)
+                reallocating = false
+            },
+        )
+    }
+}
+
+/** Danh sách các lần chuyển hạn mức trong tháng, mỗi dòng có nút hoàn tác. */
+@Composable
+private fun AdjustmentsCard(state: BudgetUiState, onUndo: (Long) -> Unit) {
+    val names = state.overview.categories.associate { it.category.id to it.category.name }
+    GlassCard(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(start = 16.dp, top = 12.dp, bottom = 4.dp, end = 4.dp)) {
+            Text(stringResource(R.string.adjustments_title), style = MaterialTheme.typography.titleSmall)
+            state.adjustments.forEach { a ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        stringResource(R.string.adjustment_line, names[a.fromCategoryId].orEmpty(), names[a.toCategoryId].orEmpty()),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f),
+                    )
+                    MoneyText(a.amount, style = MaterialTheme.typography.bodyMedium)
+                    IconButton(onClick = { onUndo(a.id) }) {
+                        Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = stringResource(R.string.undo_adjustment))
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Chọn danh mục nguồn (còn hạn mức chưa tiêu), danh mục đích và số tiền; chỉ tác động tháng [month]. */
+@Composable
+private fun ReallocateDialog(
+    month: YearMonth,
+    rows: List<CategoryBudget>,
+    onDismiss: () -> Unit,
+    onSave: (fromId: Long, toId: Long, text: String) -> Unit,
+) {
+    val sources = rows.filter { maxReallocatable(it.progress) > 0 }
+    var fromId by rememberSaveable { mutableStateOf(sources.singleOrNull()?.category?.id) }
+    var toId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var text by rememberSaveable { mutableStateOf("") }
+    val max = maxReallocatable(rows.firstOrNull { it.category.id == fromId }?.progress)
+    val error = validateReallocation(fromId, toId, parseVnd(text), max)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(Icons.Filled.SwapHoriz, contentDescription = null) },
+        title = { Text(stringResource(R.string.reallocate)) },
+        text = {
+            Column(
+                Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    stringResource(R.string.reallocate_note),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                CategoryPicker(
+                    categories = sources.map { it.category },
+                    selectedId = fromId,
+                    onSelect = { id ->
+                        fromId = id
+                        if (toId == id) toId = null
+                    },
+                    isError = false,
+                    title = stringResource(R.string.reallocate_from),
+                )
+                CategoryPicker(
+                    categories = rows.map { it.category }.filter { it.id != fromId },
+                    selectedId = toId,
+                    onSelect = { toId = it },
+                    isError = false,
+                    title = stringResource(R.string.reallocate_to),
+                )
+                OutlinedTextField(
+                    value = TextFieldValue(text, selection = TextRange(text.length)),
+                    onValueChange = { v -> text = formatAmountInput(v.text) },
+                    label = { Text(stringResource(R.string.reallocate_amount)) },
+                    suffix = { Text("₫") },
+                    isError = error == ReallocationError.EXCEEDS_REMAINING,
+                    supportingText = {
+                        Text(
+                            when {
+                                fromId == null -> stringResource(R.string.reallocate_pick_source)
+                                error == ReallocationError.EXCEEDS_REMAINING ->
+                                    stringResource(R.string.reallocate_exceeds, formatVnd(max))
+                                else -> stringResource(R.string.reallocate_hint, formatVnd(max), month.label())
+                            },
+                        )
+                    },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val from = fromId
+                    val to = toId
+                    if (from != null && to != null) onSave(from, to, text)
+                },
+                enabled = error == null,
+            ) { Text(stringResource(R.string.save)) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+    )
 }
 
 /** Ngân sách tổng: thẻ nổi bật nền gradient, số còn lại cỡ lớn — tách biệt hẳn với thẻ danh mục. */
@@ -238,11 +391,12 @@ private fun inheritedSince(state: BudgetUiState, categoryId: Long): YearMonth? =
     state.since[categoryId]?.takeIf { it < state.month }
 
 @Composable
-private fun CategoryBudgetCard(row: CategoryBudget, since: YearMonth?, onClick: () -> Unit) {
+private fun CategoryBudgetCard(row: CategoryBudget, since: YearMonth?, adjustment: Long, onClick: () -> Unit) {
     BudgetCard(
         icon = { CategoryIcon(row.category, size = 44.dp) },
         title = row.category.name,
         since = since,
+        adjustment = adjustment,
         progress = row.progress,
         spent = row.spent,
         emptyHint = stringResource(R.string.tap_to_set_limit),
@@ -256,6 +410,7 @@ private fun BudgetCard(
     icon: @Composable () -> Unit,
     title: String,
     since: YearMonth?,
+    adjustment: Long,
     progress: BudgetProgress?,
     spent: Long,
     emptyHint: String,
@@ -273,6 +428,14 @@ private fun BudgetCard(
                             stringResource(R.string.budget_since, "%02d/%d".format(since.monthValue, since.year)),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    if (adjustment != 0L) {
+                        val signed = if (adjustment > 0) "+${formatVnd(adjustment)}" else formatVnd(adjustment)
+                        Text(
+                            stringResource(R.string.adjustment_in_month, signed),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
                         )
                     }
                 }
@@ -382,6 +545,50 @@ private fun BudgetScreenPreview() {
             ),
             onMonthChange = {},
             onSetLimit = { _, _ -> },
+            onReallocate = { _, _, _ -> },
+            onUndoAdjustment = {},
         )
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun BudgetScreenReallocatedPreview() {
+    val month = YearMonth.of(2026, 11)
+    val food = Category(1, "Ăn uống", "food", 0xFFEF5350, TransactionType.EXPENSE)
+    val entertainment = Category(2, "Giải trí", "entertainment", 0xFFEC407A, TransactionType.EXPENSE)
+    val cats = listOf(food, entertainment)
+    val txs = listOf(Transaction(1, 3_200_000, TransactionType.EXPENSE, 1, month.atDay(3)))
+    val base = listOf(Budget(month, 1, 3_000_000), Budget(month, 2, 1_000_000))
+    val adjustments = listOf(BudgetAdjustment(1, month, fromCategoryId = 2, toCategoryId = 1, amount = 500_000))
+    val budgets = applyAdjustments(base, adjustments, month)
+    FunManagerTheme {
+        BudgetScreen(
+            BudgetUiState(
+                month = month,
+                overview = budgetOverview(summarize(txs, cats), budgets, cats),
+                limits = budgets.associate { it.categoryId to it.limit },
+                baseLimits = base.associate { it.categoryId to it.limit },
+                adjustments = adjustments,
+                netAdjustment = netAdjustments(adjustments),
+            ),
+            onMonthChange = {},
+            onSetLimit = { _, _ -> },
+            onReallocate = { _, _, _ -> },
+            onUndoAdjustment = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ReallocateDialogPreview() {
+    val month = YearMonth.of(2026, 11)
+    val food = Category(1, "Ăn uống", "food", 0xFFEF5350, TransactionType.EXPENSE)
+    val entertainment = Category(2, "Giải trí", "entertainment", 0xFFEC407A, TransactionType.EXPENSE)
+    val rows = listOf(
+        CategoryBudget(food, 2_700_000, BudgetProgress(2_700_000, 3_000_000)),
+        CategoryBudget(entertainment, 200_000, BudgetProgress(200_000, 1_000_000)),
+    )
+    FunManagerTheme { ReallocateDialog(month, rows, onDismiss = {}, onSave = { _, _, _ -> }) }
 }
