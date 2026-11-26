@@ -1,21 +1,15 @@
 package com.funmanager.ui.settings
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.funmanager.data.FinanceRepository
 import com.funmanager.domain.ReminderSettings
 import com.funmanager.reminder.ReminderManager
 import com.funmanager.ui.container
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import java.time.LocalTime
 
-class ReminderViewModel(
-    private val reminders: ReminderManager,
-    private val repository: FinanceRepository,
-) : ViewModel() {
+class ReminderViewModel(private val reminders: ReminderManager) : ViewModel() {
 
     val settings: StateFlow<ReminderSettings> = reminders.settings
 
@@ -23,13 +17,9 @@ class ReminderViewModel(
 
     fun setTime(time: LocalTime) = reminders.setTime(time)
 
-    fun sendTest() {
-        viewModelScope.launch { reminders.sendNow(repository) }
-    }
-
     companion object {
         val Factory = viewModelFactory {
-            initializer { ReminderViewModel(container.reminders, container.repository) }
+            initializer { ReminderViewModel(container.reminders) }
         }
     }
 }

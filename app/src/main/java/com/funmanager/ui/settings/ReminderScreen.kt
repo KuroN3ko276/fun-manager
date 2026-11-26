@@ -27,7 +27,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -83,7 +82,6 @@ fun ReminderRoute(onBack: () -> Unit, viewModel: ReminderViewModel = viewModel(f
             }
         },
         onTimeChange = viewModel::setTime,
-        onSendTest = viewModel::sendTest,
         onOpenSystemSettings = {
             context.startActivity(
                 Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName),
@@ -107,7 +105,6 @@ fun ReminderScreen(
     onBack: () -> Unit,
     onToggle: (Boolean) -> Unit,
     onTimeChange: (LocalTime) -> Unit,
-    onSendTest: () -> Unit,
     onOpenSystemSettings: () -> Unit,
 ) {
     var pickingTime by rememberSaveable { mutableStateOf(false) }
@@ -169,9 +166,6 @@ fun ReminderScreen(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                OutlinedButton(onClick = onSendTest, enabled = notificationsAllowed) {
-                    Text(stringResource(R.string.reminder_test))
-                }
             }
         }
     }
@@ -203,7 +197,6 @@ private fun ReminderScreenPreview() {
             onBack = {},
             onToggle = {},
             onTimeChange = {},
-            onSendTest = {},
             onOpenSystemSettings = {},
         )
     }

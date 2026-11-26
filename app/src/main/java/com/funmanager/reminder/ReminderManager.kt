@@ -4,7 +4,6 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import com.funmanager.data.FinanceRepository
 import com.funmanager.data.ReminderStore
 import com.funmanager.domain.ReminderSettings
 import com.funmanager.domain.nextReminderAt
@@ -47,9 +46,6 @@ class ReminderManager(context: Context, private val store: ReminderStore = Remin
         val at = nextReminderAt(LocalDateTime.now(), s.time).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
         alarms.setWindow(AlarmManager.RTC_WAKEUP, at, WINDOW_MS, pending)
     }
-
-    /** Gửi ngay một thông báo nhắc (nút "Gửi thử"). */
-    suspend fun sendNow(repository: FinanceRepository) = ReminderNotifier.notify(context, repository)
 
     private fun alarmIntent(): PendingIntent = PendingIntent.getBroadcast(
         context,

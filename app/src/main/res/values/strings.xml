@@ -241,7 +241,6 @@
     <string name="reminder_enable">Nhắc ghi chi tiêu buổi tối</string>
     <string name="reminder_enable_desc">Mỗi tối: hôm nay đã chi bao nhiêu, ngày mai được tiêu bao nhiêu.</string>
     <string name="reminder_time">Giờ nhắc</string>
-    <string name="reminder_test">Gửi thông báo thử</string>
     <string name="reminder_permission_denied">Thông báo đang bị tắt. Hãy cho phép thông báo của app trong Cài đặt của điện thoại.</string>
     <string name="reminder_open_settings">Mở cài đặt thông báo</string>
     <string name="reminder_note">Giờ nhắc có thể lệch vài phút để tiết kiệm pin.</string>
