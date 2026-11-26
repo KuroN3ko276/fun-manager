@@ -236,4 +236,24 @@
     <string name="allowance_reserved">đã để dành %1$s cho định kỳ</string>
     <string name="widget_today_left">Hôm nay còn được tiêu %1$s</string>
     <string name="widget_today_over">Hôm nay đã tiêu quá %1$s</string>
+
+    <string name="reminder">Nhắc nhở</string>
+    <string name="reminder_enable">Nhắc ghi chi tiêu buổi tối</string>
+    <string name="reminder_enable_desc">Mỗi tối: hôm nay đã chi bao nhiêu, ngày mai được tiêu bao nhiêu.</string>
+    <string name="reminder_time">Giờ nhắc</string>
+    <string name="reminder_test">Gửi thông báo thử</string>
+    <string name="reminder_permission_denied">Thông báo đang bị tắt. Hãy cho phép thông báo của app trong Cài đặt của điện thoại.</string>
+    <string name="reminder_open_settings">Mở cài đặt thông báo</string>
+    <string name="reminder_note">Giờ nhắc có thể lệch vài phút để tiết kiệm pin.</string>
+    <string name="reminder_channel">Nhắc ghi chi tiêu</string>
+    <string name="reminder_channel_desc">Lời nhắc buổi tối kèm tóm tắt chi tiêu trong ngày.</string>
+    <string name="reminder_public_title">Đến giờ ghi chi tiêu hôm nay</string>
+    <string name="reminder_title_nothing">Hôm nay bạn chưa ghi khoản nào</string>
+    <string name="reminder_title_spent">Hôm nay đã chi %1$s</string>
+    <string name="reminder_body_nothing">Dành một phút ghi lại chi tiêu trong ngày nhé.</string>
+    <string name="reminder_body_tomorrow">Ngày mai được tiêu %1$s.</string>
+    <string name="reminder_body_over">Tháng này đã vượt ngân sách %1$s.</string>
+    <string name="reminder_body_last_day">Hôm nay là ngày cuối tháng, xem lại báo cáo tháng nhé.</string>
+    <string name="reminder_body_no_budget">Đã ghi %1$d khoản. Đặt ngân sách để biết mỗi ngày được tiêu bao nhiêu.</string>
+    <string name="reminder_action_add">Ghi khoản chi</string>
 </resources>

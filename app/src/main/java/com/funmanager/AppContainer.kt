@@ -6,6 +6,7 @@ import com.funmanager.data.FinanceRepository
 import com.funmanager.data.LockStore
 import com.funmanager.data.ThemeStore
 import com.funmanager.lock.AppLockManager
+import com.funmanager.reminder.ReminderManager
 import com.funmanager.ui.theme.Accent
 import com.funmanager.widget.SummaryWidgetProvider
 import kotlinx.coroutines.CoroutineScope
@@ -25,6 +26,8 @@ class AppContainer(context: Context) {
     val repository = FinanceRepository(AppDatabase.build(appContext))
 
     val appLock = AppLockManager(LockStore(appContext))
+
+    val reminders = ReminderManager(appContext)
 
     private val themeStore = ThemeStore(appContext)
 

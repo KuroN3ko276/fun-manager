@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Search
@@ -81,10 +82,11 @@ fun HomeRoute(
     onOpenWallets: () -> Unit,
     onOpenSecurity: () -> Unit,
     onOpenAppearance: () -> Unit,
+    onOpenReminder: () -> Unit,
     viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    HomeScreen(state, viewModel::onMonthChange, onAdd, onOpen, onOpenBudget, onOpenCategories, onOpenRecurring, onOpenSearch, onOpenWallets, onOpenSecurity, onOpenAppearance)
+    HomeScreen(state, viewModel::onMonthChange, onAdd, onOpen, onOpenBudget, onOpenCategories, onOpenRecurring, onOpenSearch, onOpenWallets, onOpenSecurity, onOpenAppearance, onOpenReminder)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -101,6 +103,7 @@ fun HomeScreen(
     onOpenWallets: () -> Unit,
     onOpenSecurity: () -> Unit,
     onOpenAppearance: () -> Unit,
+    onOpenReminder: () -> Unit,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     Scaffold(
@@ -145,6 +148,14 @@ fun HomeScreen(
                             onClick = {
                                 menuOpen = false
                                 onOpenAppearance()
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.reminder)) },
+                            leadingIcon = { Icon(Icons.Filled.Notifications, contentDescription = null) },
+                            onClick = {
+                                menuOpen = false
+                                onOpenReminder()
                             },
                         )
                         DropdownMenuItem(
@@ -344,6 +355,7 @@ private fun HomeScreenPreview() {
             onOpenWallets = {},
             onOpenSecurity = {},
             onOpenAppearance = {},
+            onOpenReminder = {},
         )
     }
 }

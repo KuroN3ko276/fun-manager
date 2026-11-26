@@ -196,6 +196,9 @@ class FinanceRepository(private val db: AppDatabase) {
 
     suspend fun deleteTransfer(id: Long) = db.walletDao().deleteTransfer(id)
 
+    /** Giao dịch (thu và chi) ghi vào ngày [date]. */
+    suspend fun transactionsOn(date: LocalDate): List<Transaction> = db.transactionDao().getBetween(date, date)
+
     /** Số được tiêu mỗi ngày của tháng chứa [today] (null nếu chưa đặt ngân sách); dùng cho widget và nhắc nhở. */
     suspend fun dailyAllowance(today: LocalDate = LocalDate.now()): DailyAllowance? {
         val month = YearMonth.from(today)
