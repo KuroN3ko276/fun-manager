@@ -8,6 +8,7 @@ import com.funmanager.data.Budget
 import com.funmanager.data.BudgetAdjustment
 import com.funmanager.data.FinanceRepository
 import com.funmanager.domain.BudgetOverview
+import com.funmanager.domain.BudgetSuggestion
 import com.funmanager.domain.applyAdjustments
 import com.funmanager.domain.budgetOverview
 import com.funmanager.domain.netAdjustments
@@ -36,6 +37,8 @@ data class BudgetUiState(
     val adjustments: List<BudgetAdjustment> = emptyList(),
     /** Chênh lệch hạn mức theo danh mục do các lần chuyển trong tháng. */
     val netAdjustment: Map<Long, Long> = emptyMap(),
+    /** Hạn mức gợi ý theo trung bình các tháng trước; null nếu chưa có dữ liệu. */
+    val suggestion: BudgetSuggestion? = null,
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -50,7 +53,8 @@ class BudgetViewModel(
             repository.baseBudgetsIn(month),
             repository.adjustmentsIn(month),
             repository.categories,
-        ) { transactions, base, adjustments, categories ->
+            repository.budgetSuggestion(month),
+        ) { transactions, base, adjustments, categories, suggestion ->
             val budgets = applyAdjustments(base, adjustments, month)
             BudgetUiState(
                 month = month,
@@ -60,6 +64,7 @@ class BudgetViewModel(
                 baseLimits = base.associate { it.categoryId to it.limit },
                 adjustments = adjustments,
                 netAdjustment = netAdjustments(adjustments),
+                suggestion = suggestion,
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), BudgetUiState())
@@ -72,6 +77,12 @@ class BudgetViewModel(
     fun setLimit(categoryId: Long, text: String) {
         val month = selectedMonth.value
         viewModelScope.launch { repository.setBudget(month, categoryId, parseVnd(text)) }
+    }
+
+    /** Đặt nhiều hạn mức cùng lúc (từ gợi ý), từ tháng đang xem trở đi. */
+    fun applyLimits(limits: Map<Long, Long>) {
+        val month = selectedMonth.value
+        viewModelScope.launch { repository.setBudgets(month, limits) }
     }
 
     /** Chuyển hạn mức giữa hai danh mục, chỉ trong tháng đang xem. */

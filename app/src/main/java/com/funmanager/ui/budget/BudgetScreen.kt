@@ -23,16 +23,21 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -67,6 +72,7 @@ import com.funmanager.data.Transaction
 import com.funmanager.data.TransactionType
 import com.funmanager.domain.BudgetLevel
 import com.funmanager.domain.BudgetProgress
+import com.funmanager.domain.BudgetSuggestion
 import com.funmanager.domain.CategoryBudget
 import com.funmanager.domain.ReallocationError
 import com.funmanager.domain.applyAdjustments
@@ -76,6 +82,7 @@ import com.funmanager.domain.groupDigits
 import com.funmanager.domain.maxReallocatable
 import com.funmanager.domain.netAdjustments
 import com.funmanager.domain.parseVnd
+import com.funmanager.domain.reduceSuggestion
 import com.funmanager.domain.summarize
 import com.funmanager.domain.validateReallocation
 import com.funmanager.ui.components.BudgetBar
@@ -96,7 +103,7 @@ import kotlin.math.roundToInt
 @Composable
 fun BudgetRoute(viewModel: BudgetViewModel = viewModel(factory = BudgetViewModel.Factory)) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    BudgetScreen(state, viewModel::onMonthChange, viewModel::setLimit, viewModel::reallocate, viewModel::undoAdjustment)
+    BudgetScreen(state, viewModel::onMonthChange, viewModel::setLimit, viewModel::reallocate, viewModel::undoAdjustment, viewModel::applyLimits)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -107,9 +114,11 @@ fun BudgetScreen(
     onSetLimit: (categoryId: Long, text: String) -> Unit,
     onReallocate: (fromId: Long, toId: Long, amountText: String) -> Unit,
     onUndoAdjustment: (id: Long) -> Unit,
+    onApplyLimits: (Map<Long, Long>) -> Unit,
 ) {
     var editing by rememberSaveable { mutableStateOf<Long?>(null) }
     var reallocating by rememberSaveable { mutableStateOf(false) }
+    var suggesting by rememberSaveable { mutableStateOf(false) }
     val canReallocate = state.overview.categories.any { maxReallocatable(it.progress) > 0 }
 
     Scaffold(
@@ -129,6 +138,15 @@ fun BudgetScreen(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+            state.suggestion?.let { suggestion ->
+                item {
+                    OutlinedButton(onClick = { suggesting = true }, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Filled.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.suggest_budget_button, suggestion.months))
+                    }
+                }
             }
             item {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -168,10 +186,28 @@ fun BudgetScreen(
             title = name,
             month = state.month,
             initial = state.baseLimits[categoryId],
+            suggested = state.suggestion?.let { if (categoryId == Budget.TOTAL_CATEGORY_ID) it.total else it.byCategory[categoryId] },
+            suggestionMonths = state.suggestion?.months ?: 0,
             onDismiss = { editing = null },
             onSave = { text ->
                 onSetLimit(categoryId, text)
                 editing = null
+            },
+        )
+    }
+
+    val suggestion = state.suggestion
+    if (suggesting && suggestion != null) {
+        SuggestDialog(
+            month = state.month,
+            suggestion = suggestion,
+            rows = state.overview.categories,
+            currentTotal = state.baseLimits[Budget.TOTAL_CATEGORY_ID],
+            currentLimits = state.baseLimits,
+            onDismiss = { suggesting = false },
+            onApply = { limits ->
+                onApplyLimits(limits)
+                suggesting = false
             },
         )
     }
@@ -188,6 +224,108 @@ fun BudgetScreen(
         )
     }
 }
+
+/**
+ * Đặt hạn mức hàng loạt theo mức chi trung bình các tháng trước. Mặc định chọn sẵn danh mục chưa có
+ * hạn mức; có tuỳ chọn giảm 10% để tiết kiệm.
+ */
+@Composable
+private fun SuggestDialog(
+    month: YearMonth,
+    suggestion: BudgetSuggestion,
+    rows: List<CategoryBudget>,
+    currentTotal: Long?,
+    currentLimits: Map<Long, Long>,
+    onDismiss: () -> Unit,
+    onApply: (Map<Long, Long>) -> Unit,
+) {
+    val suggestedRows = rows.filter { it.category.id in suggestion.byCategory }
+    var selected by rememberSaveable {
+        mutableStateOf(
+            (suggestedRows.map { it.category.id }.filter { it !in currentLimits } +
+                listOfNotNull(Budget.TOTAL_CATEGORY_ID.takeIf { currentTotal == null })).toSet().toList(),
+        )
+    }
+    var reduce by rememberSaveable { mutableStateOf(false) }
+    val percent = if (reduce) SAVING_PERCENT else 0
+    fun value(id: Long): Long {
+        val base = if (id == Budget.TOTAL_CATEGORY_ID) suggestion.total else suggestion.byCategory.getValue(id)
+        return reduceSuggestion(base, percent)
+    }
+    fun toggle(id: Long) {
+        selected = if (id in selected) selected - id else selected + id
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(Icons.Filled.AutoAwesome, contentDescription = null) },
+        title = { Text(stringResource(R.string.suggest_budget_title)) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                Text(
+                    stringResource(R.string.suggest_budget_note, suggestion.months, month.label()),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Row(
+                    Modifier.fillMaxWidth().clickable { reduce = !reduce }.padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        stringResource(R.string.suggest_reduce, SAVING_PERCENT),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Switch(checked = reduce, onCheckedChange = { reduce = it })
+                }
+                HorizontalDivider()
+                SuggestRow(
+                    name = stringResource(R.string.total_budget),
+                    current = currentTotal,
+                    suggested = value(Budget.TOTAL_CATEGORY_ID),
+                    checked = Budget.TOTAL_CATEGORY_ID in selected,
+                    onToggle = { toggle(Budget.TOTAL_CATEGORY_ID) },
+                )
+                suggestedRows.forEach { row ->
+                    SuggestRow(
+                        name = row.category.name,
+                        current = currentLimits[row.category.id],
+                        suggested = value(row.category.id),
+                        checked = row.category.id in selected,
+                        onToggle = { toggle(row.category.id) },
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onApply(selected.associateWith(::value)) },
+                enabled = selected.isNotEmpty(),
+            ) { Text(stringResource(R.string.suggest_apply, selected.size)) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+    )
+}
+
+@Composable
+private fun SuggestRow(name: String, current: Long?, suggested: Long, checked: Boolean, onToggle: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().clickable(onClick = onToggle).padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Checkbox(checked = checked, onCheckedChange = { onToggle() })
+        Column(Modifier.weight(1f)) {
+            Text(name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+            Text(
+                current?.let { stringResource(R.string.suggest_current, formatVnd(it)) } ?: stringResource(R.string.not_set),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        MoneyText(suggested, style = MaterialTheme.typography.bodyMedium)
+    }
+}
+
+private const val SAVING_PERCENT = 10
 
 /** Danh sách các lần chuyển hạn mức trong tháng, mỗi dòng có nút hoàn tác. */
 @Composable
@@ -486,7 +624,15 @@ private fun LabeledAmount(label: String, amount: Long, color: Color, modifier: M
 }
 
 @Composable
-private fun LimitDialog(title: String, month: YearMonth, initial: Long?, onDismiss: () -> Unit, onSave: (String) -> Unit) {
+private fun LimitDialog(
+    title: String,
+    month: YearMonth,
+    initial: Long?,
+    suggested: Long?,
+    suggestionMonths: Int,
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit,
+) {
     val initialText = initial?.let { groupDigits(it.toString()) }.orEmpty()
     var value by remember { mutableStateOf(TextFieldValue(initialText, selection = TextRange(initialText.length))) }
     val focus = remember { FocusRequester() }
@@ -496,19 +642,31 @@ private fun LimitDialog(title: String, month: YearMonth, initial: Long?, onDismi
         icon = { Icon(Icons.Filled.Savings, contentDescription = null) },
         title = { Text(title) },
         text = {
-            OutlinedTextField(
-                value = value,
-                onValueChange = { v ->
-                    val formatted = formatAmountInput(v.text)
-                    value = TextFieldValue(formatted, selection = TextRange(formatted.length))
-                },
-                label = { Text(stringResource(R.string.monthly_limit)) },
-                suffix = { Text("₫") },
-                supportingText = { Text(stringResource(R.string.limit_hint_from, month.label())) },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.focusRequester(focus),
-            )
+            Column {
+                OutlinedTextField(
+                    value = value,
+                    onValueChange = { v ->
+                        val formatted = formatAmountInput(v.text)
+                        value = TextFieldValue(formatted, selection = TextRange(formatted.length))
+                    },
+                    label = { Text(stringResource(R.string.monthly_limit)) },
+                    suffix = { Text("₫") },
+                    supportingText = { Text(stringResource(R.string.limit_hint_from, month.label())) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.focusRequester(focus),
+                )
+                if (suggested != null) {
+                    TextButton(onClick = {
+                        val text = groupDigits(suggested.toString())
+                        value = TextFieldValue(text, selection = TextRange(text.length))
+                    }) {
+                        Icon(Icons.Filled.AutoAwesome, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(stringResource(R.string.suggest_use_average, suggestionMonths, formatVnd(suggested)))
+                    }
+                }
+            }
         },
         confirmButton = { TextButton(onClick = { onSave(value.text) }) { Text(stringResource(R.string.save)) } },
         dismissButton = {
@@ -547,6 +705,7 @@ private fun BudgetScreenPreview() {
             onSetLimit = { _, _ -> },
             onReallocate = { _, _, _ -> },
             onUndoAdjustment = {},
+            onApplyLimits = {},
         )
     }
 }
@@ -576,6 +735,7 @@ private fun BudgetScreenReallocatedPreview() {
             onSetLimit = { _, _ -> },
             onReallocate = { _, _, _ -> },
             onUndoAdjustment = {},
+            onApplyLimits = {},
         )
     }
 }
@@ -591,4 +751,24 @@ private fun ReallocateDialogPreview() {
         CategoryBudget(entertainment, 200_000, BudgetProgress(200_000, 1_000_000)),
     )
     FunManagerTheme { ReallocateDialog(month, rows, onDismiss = {}, onSave = { _, _, _ -> }) }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SuggestDialogPreview() {
+    val month = YearMonth.of(2026, 12)
+    val food = Category(1, "Ăn uống", "food", 0xFFEF5350, TransactionType.EXPENSE)
+    val entertainment = Category(2, "Giải trí", "entertainment", 0xFFEC407A, TransactionType.EXPENSE)
+    val rows = listOf(CategoryBudget(food, 0, null), CategoryBudget(entertainment, 0, BudgetProgress(0, 1_000_000)))
+    FunManagerTheme {
+        SuggestDialog(
+            month = month,
+            suggestion = BudgetSuggestion(3, mapOf(1L to 3_010_000L, 2L to 820_000L)),
+            rows = rows,
+            currentTotal = null,
+            currentLimits = mapOf(2L to 1_000_000L),
+            onDismiss = {},
+            onApply = {},
+        )
+    }
 }

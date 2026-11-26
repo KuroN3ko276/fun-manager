@@ -15,7 +15,7 @@
 - [x] **Danh mục tự tạo** — thêm/sửa/xoá danh mục với tên, màu, biểu tượng.
 - [x] **Nhiều ví/tài khoản** — tiền mặt, ngân hàng, thẻ tín dụng; chuyển tiền giữa ví.
 - [ ] **Xuất CSV / sao lưu & khôi phục** — lưu ra file để không mất dữ liệu khi đổi máy.
-- [ ] **Nhắc nhở hằng ngày** — notification nhắc ghi chi tiêu buổi tối.
+- [x] **Nhắc nhở hằng ngày** — notification nhắc ghi chi tiêu buổi tối.
 - [x] **Widget màn hình chính** — số đã chi, số tiền còn lại theo danh mục tự chọn (không hiện thu nhập).
 - [x] **Khoá app** — vân tay hoặc PIN.
 - [x] **Mục tiêu tiết kiệm** — đặt mục tiêu và theo dõi tiến độ.
@@ -24,9 +24,9 @@
 
 ## Giúp quản lý chi tiêu tốt hơn
 
-- [ ] **Hôm nay được tiêu** — (ngân sách còn lại − định kỳ sắp tới) / số ngày còn lại; hiện trên Home và widget.
+- [x] **Hôm nay được tiêu** — (ngân sách còn lại − định kỳ sắp tới) / số ngày còn lại; hiện trên Home và widget.
 - [ ] **Cảnh báo theo tốc độ** — báo sớm khi % đã chi vượt % thời gian đã qua của tháng.
-- [ ] **Gợi ý ngân sách** — đề xuất hạn mức theo trung bình 3 tháng gần nhất của từng danh mục.
+- [x] **Gợi ý ngân sách** — đề xuất hạn mức theo trung bình 3 tháng gần nhất của từng danh mục.
 - [ ] **Nhãn Cần / Muốn** — gắn cho khoản chi; báo cáo % chi "muốn", mẫu 50/30/20.
 - [ ] **Tiết kiệm khi có lương** — khi ghi khoản thu, gợi ý chuyển X% vào mục tiêu tiết kiệm.
 - [ ] **Tổng kết cuối tháng** — so với tháng trước: danh mục tăng mạnh, khoản lớn nhất, danh mục vượt, số tiết kiệm.

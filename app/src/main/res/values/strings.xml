@@ -256,4 +256,12 @@
     <string name="reminder_body_last_day">Hôm nay là ngày cuối tháng, xem lại báo cáo tháng nhé.</string>
     <string name="reminder_body_no_budget">Đã ghi %1$d khoản. Đặt ngân sách để biết mỗi ngày được tiêu bao nhiêu.</string>
     <string name="reminder_action_add">Ghi khoản chi</string>
+
+    <string name="suggest_budget_button">Gợi ý theo chi tiêu %1$d tháng trước</string>
+    <string name="suggest_budget_title">Gợi ý ngân sách</string>
+    <string name="suggest_budget_note">Trung bình chi tiêu %1$d tháng gần nhất, làm tròn lên. Áp dụng từ %2$s trở đi.</string>
+    <string name="suggest_reduce">Giảm %1$d%% để tiết kiệm</string>
+    <string name="suggest_current">Hiện tại %1$s</string>
+    <string name="suggest_apply">Áp dụng (%1$d)</string>
+    <string name="suggest_use_average">TB %1$d tháng: %2$s · Dùng</string>
 </resources>

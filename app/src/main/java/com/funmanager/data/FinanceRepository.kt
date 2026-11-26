@@ -3,14 +3,17 @@ package com.funmanager.data
 import androidx.room.withTransaction
 import com.funmanager.domain.BudgetChange
 import com.funmanager.domain.BudgetProgress
+import com.funmanager.domain.BudgetSuggestion
 import com.funmanager.domain.DailyAllowance
 import com.funmanager.domain.MonthSnapshot
 import com.funmanager.domain.ReallocationError
+import com.funmanager.domain.SUGGESTION_MONTHS
 import com.funmanager.domain.applyAdjustments
 import com.funmanager.domain.budgetChange
 import com.funmanager.domain.dailyAllowance
 import com.funmanager.domain.effectiveBudgets
 import com.funmanager.domain.maxReallocatable
+import com.funmanager.domain.suggestBudgets
 import com.funmanager.domain.validateReallocation
 import com.funmanager.domain.WidgetCategoryLine
 import com.funmanager.domain.widgetCategoryLines
@@ -69,6 +72,11 @@ class FinanceRepository(private val db: AppDatabase) {
     fun budgetsIn(month: YearMonth): Flow<List<Budget>> =
         combine(baseBudgetsIn(month), adjustmentsIn(month)) { base, adj -> applyAdjustments(base, adj, month) }
 
+    /** Hạn mức gợi ý cho [month] từ chi tiêu của các tháng trước. */
+    fun budgetSuggestion(month: YearMonth): Flow<BudgetSuggestion?> =
+        transactionsBetween(month.minusMonths(SUGGESTION_MONTHS.toLong()), month.minusMonths(1))
+            .map { suggestBudgets(it, month) }
+
     fun adjustmentsIn(month: YearMonth): Flow<List<BudgetAdjustment>> = db.budgetDao().observeAdjustments(month)
 
     private suspend fun effectiveBudgetsAt(month: YearMonth): List<Budget> =
@@ -97,6 +105,11 @@ class FinanceRepository(private val db: AppDatabase) {
             is BudgetChange.Upsert -> db.budgetDao().upsert(change.budget)
             is BudgetChange.Delete -> db.budgetDao().delete(change.month, change.categoryId)
         }
+    }
+
+    /** Đặt nhiều hạn mức cùng lúc từ [month] trở đi (ví dụ áp dụng gợi ý). */
+    suspend fun setBudgets(month: YearMonth, limits: Map<Long, Long>) = db.withTransaction {
+        limits.forEach { (categoryId, limit) -> setBudget(month, categoryId, limit) }
     }
 
     val recurringRules: Flow<List<RecurringRule>> = db.recurringDao().observeAll()
