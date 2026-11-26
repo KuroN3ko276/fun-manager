@@ -29,6 +29,9 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions WHERE date BETWEEN :start AND :end ORDER BY date DESC, id DESC")
     fun observeBetween(start: LocalDate, end: LocalDate): Flow<List<Transaction>>
 
+    @Query("SELECT * FROM transactions WHERE date BETWEEN :start AND :end")
+    suspend fun getBetween(start: LocalDate, end: LocalDate): List<Transaction>
+
     @Query("SELECT * FROM transactions ORDER BY date DESC, id DESC")
     fun observeAll(): Flow<List<Transaction>>
 

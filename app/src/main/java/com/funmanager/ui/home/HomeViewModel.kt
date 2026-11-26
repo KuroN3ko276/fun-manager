@@ -7,11 +7,14 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.funmanager.data.Budget
 import com.funmanager.data.Category
 import com.funmanager.data.FinanceRepository
+import com.funmanager.data.RecurringRule
 import com.funmanager.data.Transaction
 import com.funmanager.data.Wallet
 import com.funmanager.domain.BudgetOverview
+import com.funmanager.domain.DailyAllowance
 import com.funmanager.domain.MonthlySummary
 import com.funmanager.domain.budgetOverview
+import com.funmanager.domain.dailyAllowance
 import com.funmanager.domain.summarize
 import com.funmanager.ui.components.TransactionItem
 import com.funmanager.ui.components.walletNames
@@ -31,6 +34,8 @@ data class HomeUiState(
     val summary: MonthlySummary = MonthlySummary.EMPTY,
     val days: Map<LocalDate, List<TransactionItem>> = emptyMap(),
     val budget: BudgetOverview = BudgetOverview.EMPTY,
+    /** Chỉ có khi đang xem tháng hiện tại và đã đặt ngân sách. */
+    val allowance: DailyAllowance? = null,
     /** Tên ví theo id; rỗng khi chỉ có một ví (không cần hiển thị). */
     val walletNames: Map<Long, String> = emptyMap(),
     val loading: Boolean = true,
@@ -48,7 +53,10 @@ class HomeViewModel(
             repository.budgetsIn(month),
             repository.categories,
             repository.wallets,
-        ) { transactions, budgets, categories, wallets -> buildState(month, transactions, budgets, categories, wallets) }
+            repository.recurringRules,
+        ) { transactions, budgets, categories, wallets, rules ->
+            buildState(month, transactions, budgets, categories, wallets, rules)
+        }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 
     private fun buildState(
@@ -57,13 +65,16 @@ class HomeViewModel(
         budgets: List<Budget>,
         categories: List<Category>,
         wallets: List<Wallet>,
+        rules: List<RecurringRule>,
     ): HomeUiState {
+        val today = LocalDate.now()
         val byId = categories.associateBy { it.id }
         val summary = summarize(transactions, categories)
         return HomeUiState(
             month = month,
             summary = summary,
             budget = budgetOverview(summary, budgets, categories),
+            allowance = if (month == YearMonth.from(today)) dailyAllowance(today, budgets, transactions, rules) else null,
             days = transactions
                 .mapNotNull { t -> byId[t.categoryId]?.let { TransactionItem(t, it) } }
                 .groupBy { it.transaction.date },

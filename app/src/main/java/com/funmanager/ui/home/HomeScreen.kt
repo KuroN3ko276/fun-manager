@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Today
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -42,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -52,6 +54,7 @@ import com.funmanager.data.Transaction
 import com.funmanager.data.TransactionType
 import com.funmanager.domain.BudgetLevel
 import com.funmanager.domain.BudgetOverview
+import com.funmanager.domain.DailyAllowance
 import com.funmanager.domain.formatVnd
 import com.funmanager.domain.summarize
 import com.funmanager.ui.components.AppFab
@@ -168,6 +171,9 @@ fun HomeScreen(
         ) {
             item { MonthSelector(state.month, onMonthChange) }
             item { SummaryCard(state) }
+            state.allowance?.let { allowance ->
+                item { AllowanceCard(allowance, onClick = onOpenBudget) }
+            }
             if (state.budget.hasAlert) {
                 item { BudgetAlert(state.budget, onClick = onOpenBudget) }
             }
@@ -201,6 +207,64 @@ private fun SummaryCard(state: HomeUiState) {
         incomeLabel = stringResource(R.string.income),
         expenseLabel = stringResource(R.string.expense),
     )
+}
+
+/** "Hôm nay còn được tiêu": ngân sách còn lại (đã trừ định kỳ sắp tới) chia đều cho số ngày còn lại. */
+@Composable
+private fun AllowanceCard(allowance: DailyAllowance, onClick: () -> Unit) {
+    val monthOver = allowance.perDay == 0L && allowance.overBy > 0
+    val dayOver = allowance.leftToday < 0
+    val tint = when {
+        monthOver -> ExpenseColor
+        dayOver -> WarningColor
+        else -> MaterialTheme.colorScheme.primary
+    }
+    GlassCard(Modifier.fillMaxWidth(), onClick = onClick, strong = true) {
+        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier.size(44.dp).background(tint.copy(alpha = 0.16f), CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Filled.Today, contentDescription = null, tint = tint, modifier = Modifier.size(24.dp))
+            }
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    stringResource(
+                        when {
+                            monthOver -> R.string.allowance_month_over
+                            dayOver -> R.string.allowance_day_over
+                            else -> R.string.allowance_left_today
+                        },
+                    ),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    formatVnd(
+                        when {
+                            monthOver -> allowance.overBy
+                            dayOver -> -allowance.leftToday
+                            else -> allowance.leftToday
+                        },
+                    ),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = tint,
+                )
+                val detail = buildString {
+                    if (!monthOver) append(stringResource(R.string.allowance_per_day, formatVnd(allowance.perDay), allowance.daysLeft))
+                    if (allowance.upcomingRecurring > 0) {
+                        if (isNotEmpty()) append(" · ")
+                        append(stringResource(R.string.allowance_reserved, formatVnd(allowance.upcomingRecurring)))
+                    }
+                }
+                if (detail.isNotEmpty()) {
+                    Text(detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -259,6 +323,15 @@ private fun HomeScreenPreview() {
                 month = YearMonth.of(2026, 11),
                 summary = summarize(txs, cats),
                 days = mapOf(day to txs.map { t -> TransactionItem(t, cats.first { it.id == t.categoryId }) }),
+                allowance = DailyAllowance(
+                    budget = 6_000_000,
+                    upcomingRecurring = 1_000_000,
+                    perDay = 180_000,
+                    spentToday = 45_000,
+                    daysLeft = 6,
+                    tomorrowPerDay = 189_000,
+                    overBy = 0,
+                ),
                 loading = false,
             ),
             onMonthChange = {},

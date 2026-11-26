@@ -3,10 +3,12 @@ package com.funmanager.data
 import androidx.room.withTransaction
 import com.funmanager.domain.BudgetChange
 import com.funmanager.domain.BudgetProgress
+import com.funmanager.domain.DailyAllowance
 import com.funmanager.domain.MonthSnapshot
 import com.funmanager.domain.ReallocationError
 import com.funmanager.domain.applyAdjustments
 import com.funmanager.domain.budgetChange
+import com.funmanager.domain.dailyAllowance
 import com.funmanager.domain.effectiveBudgets
 import com.funmanager.domain.maxReallocatable
 import com.funmanager.domain.validateReallocation
@@ -194,6 +196,17 @@ class FinanceRepository(private val db: AppDatabase) {
 
     suspend fun deleteTransfer(id: Long) = db.walletDao().deleteTransfer(id)
 
+    /** Số được tiêu mỗi ngày của tháng chứa [today] (null nếu chưa đặt ngân sách); dùng cho widget và nhắc nhở. */
+    suspend fun dailyAllowance(today: LocalDate = LocalDate.now()): DailyAllowance? {
+        val month = YearMonth.from(today)
+        return dailyAllowance(
+            today = today,
+            budgets = effectiveBudgetsAt(month),
+            transactions = db.transactionDao().getBetween(month.atDay(1), month.atEndOfMonth()),
+            recurring = db.recurringDao().getActive(),
+        )
+    }
+
     /** Dữ liệu widget: tổng tháng + các dòng danh mục đã chọn (null = mặc định). */
     suspend fun widgetData(month: YearMonth, selectedIds: List<Long>?): WidgetData {
         val budgets = effectiveBudgetsAt(month)
@@ -202,10 +215,11 @@ class FinanceRepository(private val db: AppDatabase) {
         return WidgetData(
             snapshot = monthSnapshot(month),
             lines = widgetCategoryLines(selectedIds, db.categoryDao().getAll(), spent, budgets),
+            allowance = if (month == YearMonth.now()) dailyAllowance() else null,
         )
     }
 
     suspend fun allCategories(): List<Category> = db.categoryDao().getAll()
 }
 
-data class WidgetData(val snapshot: MonthSnapshot, val lines: List<WidgetCategoryLine>)
+data class WidgetData(val snapshot: MonthSnapshot, val lines: List<WidgetCategoryLine>, val allowance: DailyAllowance?)

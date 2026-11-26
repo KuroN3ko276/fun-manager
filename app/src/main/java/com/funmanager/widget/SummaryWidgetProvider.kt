@@ -17,6 +17,7 @@ import com.funmanager.R
 import com.funmanager.data.ThemeStore
 import com.funmanager.data.WidgetData
 import com.funmanager.domain.BudgetLevel
+import com.funmanager.domain.DailyAllowance
 import com.funmanager.domain.WidgetCategoryLine
 import com.funmanager.domain.formatVnd
 import com.funmanager.ui.components.label
@@ -108,6 +109,7 @@ class SummaryWidgetProvider : AppWidgetProvider() {
                     views.setTextViewText(R.id.widget_detail, text)
                 }
             }
+            bindAllowance(context, views, data.allowance, accent, visible = config.showTotal)
 
             ROWS.forEachIndexed { i, row ->
                 val line = data.lines.getOrNull(i)
@@ -127,7 +129,26 @@ class SummaryWidgetProvider : AppWidgetProvider() {
             return views
         }
 
-        private fun bindRow(context: Context, views: RemoteViews, row: Row, line: WidgetCategoryLine, accent: Int) {
+        /** Dòng "Hôm nay còn được tiêu" dưới tổng chi (chỉ khi đã đặt ngân sách và chưa vượt cả tháng). */
+        private fun bindAllowance(context: Context, views: RemoteViews, allowance: DailyAllowance?, accent: Int, visible: Boolean) {
+            if (!visible || allowance == null || allowance.perDay == 0L) {
+                views.setViewVisibility(R.id.widget_today, View.GONE)
+                return
+            }
+            views.setViewVisibility(R.id.widget_today, View.VISIBLE)
+            val over = allowance.leftToday < 0
+            views.setTextViewText(
+                R.id.widget_today,
+                if (over) {
+                    context.getString(R.string.widget_today_over, formatVnd(-allowance.leftToday))
+                } else {
+                    context.getString(R.string.widget_today_left, formatVnd(allowance.leftToday))
+                },
+            )
+            views.setTextColor(R.id.widget_today, if (over) context.getColor(R.color.widget_warning) else accent)
+        }
+
+                private fun bindRow(context: Context, views: RemoteViews, row: Row, line: WidgetCategoryLine, accent: Int) {
             views.setViewVisibility(row.root, View.VISIBLE)
             views.setInt(row.dot, "setColorFilter", line.category.color.toInt())
             views.setTextViewText(row.name, line.category.name)

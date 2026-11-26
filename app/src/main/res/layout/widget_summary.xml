@@ -83,6 +83,16 @@
             android:text="@string/widget_sample_detail"
             android:textColor="@color/widget_text"
             android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/widget_today"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/widget_accent"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
     </LinearLayout>
 
     <TextView

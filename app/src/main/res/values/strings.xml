@@ -228,4 +228,12 @@
     <string name="adjustments_title">Đã chuyển trong tháng</string>
     <string name="adjustment_line">%1$s → %2$s</string>
     <string name="undo_adjustment">Hoàn tác lần chuyển này</string>
+
+    <string name="allowance_left_today">Hôm nay còn được tiêu</string>
+    <string name="allowance_day_over">Hôm nay đã tiêu quá</string>
+    <string name="allowance_month_over">Tháng này đã vượt ngân sách</string>
+    <string name="allowance_per_day">Mỗi ngày %1$s · còn %2$d ngày</string>
+    <string name="allowance_reserved">đã để dành %1$s cho định kỳ</string>
+    <string name="widget_today_left">Hôm nay còn được tiêu %1$s</string>
+    <string name="widget_today_over">Hôm nay đã tiêu quá %1$s</string>
 </resources>
